@@ -11,7 +11,7 @@ class SalaryCalculator:
         return annual_gross / 12
 
     def calculate_working_days_ratio(self, start_date, end_date):
-        """Calculate the ratio of days worked in the month."""
+        """Calculate the ratio of weekdays worked in the month."""
         start = pd.to_datetime(start_date)
         end = pd.to_datetime(end_date)
 
@@ -19,11 +19,15 @@ class SalaryCalculator:
         month_start = pd.Timestamp(end.year, end.month, 1)
         month_end = month_start + pd.offsets.MonthEnd(1)
 
-        # Calculate total days in month and days worked
-        total_days = (month_end - month_start).days + 1
-        worked_days = min((end - start).days + 1, total_days)
+        # Create date ranges for worked days and total month days
+        worked_days_range = pd.date_range(start=start, end=end)
+        month_days_range = pd.date_range(start=month_start, end=month_end)
 
-        return worked_days / total_days
+        # Count weekdays (Monday = 0, Sunday = 6)
+        worked_weekdays = len([d for d in worked_days_range if d.weekday() < 5])
+        total_weekdays = len([d for d in month_days_range if d.weekday() < 5])
+
+        return worked_weekdays / total_weekdays
 
     def calculate_components(self, monthly_gross, working_days_ratio=1):
         """Calculate individual salary components."""
