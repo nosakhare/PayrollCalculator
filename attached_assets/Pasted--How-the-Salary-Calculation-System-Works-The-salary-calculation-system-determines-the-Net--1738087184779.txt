@@ -1,0 +1,129 @@
+### **How the Salary Calculation System Works**
+
+The salary calculation system determines the **Net Pay** for an employee by breaking down the **Gross Pay** into components, applying statutory deductions, and calculating the final amount to be paid to the employee. Here's a step-by-step explanation of the process:
+
+---
+
+### **Step 1: Input Details**
+The system requires the following inputs:
+1. **Annual Gross Pay**: The total yearly earnings before any deductions.
+2. **Start Date and End Date**: Used to calculate the number of days worked in a period.
+3. **Components of Gross Pay**:
+   - **BASIC** (30% of Monthly Gross Pay).
+   - **TRANSPORT** (30% of Monthly Gross Pay).
+   - **HOUSING** (20% of Monthly Gross Pay).
+   - **UTILITY** (10% of Monthly Gross Pay).
+   - **MEAL** (5% of Monthly Gross Pay).
+   - **CLOTHING** (5% of Monthly Gross Pay).
+
+---
+
+### **Step 2: Calculate Monthly Gross Pay**
+Monthly Gross Pay is calculated by dividing the **Annual Gross Pay** by 12:
+\[
+\text{Monthly Gross Pay} = \frac{\text{Annual Gross Pay}}{12}
+\]
+For example, if the Annual Gross Pay is ₦5,000,000, the Monthly Gross Pay is:
+\[
+\text{Monthly Gross Pay} = \frac{5,000,000}{12} = 416,666.67
+\]
+
+---
+
+### **Step 3: Break Down Monthly Gross Pay**
+The system distributes the Monthly Gross Pay into specific components based on predefined percentages:
+- **BASIC**: \( 30\% \times \text{Monthly Gross Pay} \)
+- **TRANSPORT**: \( 30\% \times \text{Monthly Gross Pay} \)
+- **HOUSING**: \( 20\% \times \text{Monthly Gross Pay} \)
+- **UTILITY**: \( 10\% \times \text{Monthly Gross Pay} \)
+- **MEAL**: \( 5\% \times \text{Monthly Gross Pay} \)
+- **CLOTHING**: \( 5\% \times \text{Monthly Gross Pay} \)
+
+---
+
+### **Step 4: Consolidated Relief Allowance (CRA)**
+The **CRA** is a statutory relief that reduces the taxable income. It is calculated as:
+\[
+\text{CRA} = 20\% \times \text{Gross Pay for CRA} + 200,000
+\]
+In this case:
+- Gross Pay for CRA = ₦390,000 (adjusted from the full Monthly Gross Pay).
+- CRA = \( 20\% \times 390,000 + 200,000 = 94,666.67 \).
+
+---
+
+### **Step 5: Taxable Pay**
+Taxable Pay is the portion of the Gross Pay subject to taxes after deducting CRA and **Employee Pension**:
+\[
+\text{Taxable Pay} = \text{Gross Pay for CRA} - \text{CRA} - \text{Employee Pension}
+\]
+For example:
+\[
+\text{Taxable Pay} = 390,000 - 94,666.67 - 26,666.67 = 295,333.33
+\]
+
+---
+
+### **Step 6: PAYE Tax Calculation**
+The **Pay-As-You-Earn (PAYE)** tax is calculated using Nigeria's progressive tax bands:
+1. **First ₦300,000**: Taxed at 7%.
+2. **Next ₦300,000**: Taxed at 11%.
+3. **Next ₦500,000**: Taxed at 15%.
+4. **Next ₦500,000**: Taxed at 19%.
+5. **Next ₦1,600,000**: Taxed at 21%.
+6. **Above ₦3,200,000**: Taxed at 24%.
+
+For a Taxable Pay of ₦295,333.33:
+- Only the first band is applied:
+  \[
+  \text{Tax} = 7\% \times 295,333.33 = 53,546.67
+  \]
+
+---
+
+### **Step 7: Employee Pension**
+Employee Pension is calculated as:
+\[
+\text{Employee Pension} = 8\% \times (\text{BASIC} + \text{TRANSPORT} + \text{HOUSING})
+\]
+For example:
+\[
+\text{Employee Pension} = 8\% \times (125,000 + 125,000 + 83,333.33) = 26,666.67
+\]
+
+---
+
+### **Step 8: Total Deductions**
+The system calculates the total deductions by summing:
+- PAYE Tax
+- Employee Pension
+
+\[
+\text{Total Deductions} = \text{PAYE Tax} + \text{Employee Pension}
+\]
+For example:
+\[
+\text{Total Deductions} = 53,546.67 + 26,666.67 = 80,213.34
+\]
+
+---
+
+### **Step 9: Net Pay**
+The Net Pay is calculated by subtracting the Total Deductions from the Monthly Gross Pay:
+\[
+\text{Net Pay} = \text{Gross Pay} - \text{Total Deductions}
+\]
+For example:
+\[
+\text{Net Pay} = 416,666.67 - 80,213.34 = 336,453.33
+\]
+
+---
+
+### **Outputs**
+The system outputs:
+1. **Earnings**: BASIC, TRANSPORT, HOUSING, UTILITY, MEAL, CLOTHING, and Total Gross Pay.
+2. **Deductions**: PAYE Tax, Employee Pension, and Total Deductions.
+3. **Net Pay**: Final take-home salary.
+
+This structured approach ensures accurate calculations for any employee based on their earnings, deductions, and applicable tax rules. Let me know if you'd like further customization or clarification!
