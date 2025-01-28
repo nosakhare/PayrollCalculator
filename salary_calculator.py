@@ -8,7 +8,7 @@ class SalaryCalculator:
 
     def calculate_monthly_gross(self, annual_gross):
         """Calculate monthly gross from annual gross."""
-        return annual_gross / 12
+        return round(annual_gross / 12, 2)
 
     def calculate_working_days_ratio(self, start_date, end_date):
         """Calculate the ratio of weekdays worked in the month."""
@@ -27,18 +27,18 @@ class SalaryCalculator:
         worked_weekdays = len([d for d in worked_days_range if d.weekday() < 5])
         total_weekdays = len([d for d in month_days_range if d.weekday() < 5])
 
-        return worked_weekdays / total_weekdays
+        return round(worked_weekdays / total_weekdays, 2)
 
     def calculate_components(self, monthly_gross, working_days_ratio=1):
         """Calculate individual salary components."""
         return {
-            component: (monthly_gross * (percentage / 100)) * working_days_ratio
+            component: round((monthly_gross * (percentage / 100)) * working_days_ratio, 2)
             for component, percentage in self.components.items()
         }
 
     def calculate_pension(self, basic, transport, housing):
         """Calculate employee pension contribution."""
-        return 0.08 * (basic + transport + housing)
+        return round(0.08 * (basic + transport + housing), 2)
 
     def calculate_cra(self, gross_pay, pension):
         """Calculate Consolidated Relief Allowance (CRA)."""
@@ -46,12 +46,12 @@ class SalaryCalculator:
         gross_after_pension = gross_pay - pension
 
         # Calculate 20% of gross after pension
-        cra_percentage = 0.2 * gross_after_pension
+        cra_percentage = round(0.2 * gross_after_pension, 2)
 
         # Calculate 1% of gross after pension and compare with monthly 200,000/12
-        minimum_relief = max(0.01 * gross_after_pension, 200000 / 12)
+        minimum_relief = round(max(0.01 * gross_after_pension, 200000 / 12), 2)
 
-        return cra_percentage + minimum_relief
+        return round(cra_percentage + minimum_relief, 2)
 
     def calculate_paye(self, taxable_pay):
         """Calculate PAYE tax using progressive tax bands."""
@@ -75,7 +75,7 @@ class SalaryCalculator:
             total_tax += taxable_in_band * rate
             remaining_income -= band
 
-        return total_tax / 12
+        return round(total_tax / 12, 2)
 
     def process_employee(self, row):
         """Process salary calculations for a single employee."""
@@ -84,7 +84,7 @@ class SalaryCalculator:
 
         # Calculate prorated monthly gross
         monthly_gross = self.calculate_monthly_gross(row['ANNUAL GROSS PAY'])
-        prorated_monthly_gross = monthly_gross * working_ratio
+        prorated_monthly_gross = round(monthly_gross * working_ratio, 2)
 
         # Calculate prorated components
         components = self.calculate_components(monthly_gross, working_ratio)
@@ -100,14 +100,14 @@ class SalaryCalculator:
         cra = self.calculate_cra(prorated_monthly_gross, pension)
 
         # Calculate taxable pay
-        taxable_pay = prorated_monthly_gross - cra - pension
+        taxable_pay = round(prorated_monthly_gross - cra - pension, 2)
 
         # Calculate PAYE tax
         paye_tax = self.calculate_paye(taxable_pay)
 
         # Calculate total deductions and net pay
-        total_deductions = paye_tax + pension
-        net_pay = prorated_monthly_gross - total_deductions
+        total_deductions = round(paye_tax + pension, 2)
+        net_pay = round(prorated_monthly_gross - total_deductions, 2)
 
         return {
             **row,
