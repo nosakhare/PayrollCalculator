@@ -88,10 +88,12 @@ class SalaryCalculator:
         monthly_gross = self.calculate_monthly_gross(row['ANNUAL GROSS PAY'])
         prorated_monthly_gross = round(monthly_gross * working_ratio, 2)
 
-        # Apply reimbursements and other deductions
+        # Get reimbursements and other deductions
         reimbursements = float(row.get('Reimbursements', 0))
         other_deductions = float(row.get('Other Deductions', 0))
-        adjusted_monthly_gross = round(prorated_monthly_gross - reimbursements - other_deductions, 2)
+
+        # Adjust monthly gross (only subtract other deductions, not reimbursements)
+        adjusted_monthly_gross = round(prorated_monthly_gross - other_deductions, 2)
 
         # Calculate prorated components
         components = self.calculate_components(monthly_gross, working_ratio)
