@@ -13,7 +13,10 @@ def validate_csv(df):
         'JOB TITLE',
         'ANNUAL GROSS PAY',
         'START DATE',
-        'END DATE'
+        'END DATE',
+        'Contract Type',  # New column
+        'Reimbursements',  # New column
+        'Other Deductions'  # New column
     ]
 
     # Check for required columns
@@ -29,6 +32,17 @@ def validate_csv(df):
         df['ANNUAL GROSS PAY'] = pd.to_numeric(df['ANNUAL GROSS PAY'])
         df['START DATE'] = pd.to_datetime(df['START DATE'])
         df['END DATE'] = pd.to_datetime(df['END DATE'])
+        df['Reimbursements'] = pd.to_numeric(df['Reimbursements']).fillna(0)
+        df['Other Deductions'] = pd.to_numeric(df['Other Deductions']).fillna(0)
+
+        # Validate Contract Type
+        valid_contract_types = ['Full Time', 'Contract']
+        invalid_types = df[~df['Contract Type'].isin(valid_contract_types)]['Contract Type'].unique()
+        if len(invalid_types) > 0:
+            return {
+                'valid': False,
+                'message': f"Invalid contract types found: {', '.join(invalid_types)}. Must be either 'Full Time' or 'Contract'"
+            }
     except Exception as e:
         return {
             'valid': False,
@@ -52,7 +66,10 @@ def generate_csv_template():
         'JOB TITLE': ['Software Engineer'],
         'ANNUAL GROSS PAY': [5000000],
         'START DATE': [(datetime.now() - timedelta(days=365)).strftime('%Y-%m-%d')],
-        'END DATE': [datetime.now().strftime('%Y-%m-%d')]
+        'END DATE': [datetime.now().strftime('%Y-%m-%d')],
+        'Contract Type': ['Full Time'],
+        'Reimbursements': [0],
+        'Other Deductions': [0]
     }
 
     df = pd.DataFrame(example_data)
