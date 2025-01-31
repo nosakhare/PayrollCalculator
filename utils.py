@@ -56,20 +56,24 @@ def validate_percentages(total):
     return abs(total - 100.0) < 0.01
 
 def generate_csv_template():
-    """Generate a template CSV file with example data."""
+    """Generate a template CSV file with example data.
+    Contract Type: Must be either 'Full Time' or 'Contract'
+    Reimbursements: Additional payments like allowances or reimbursements
+    Other Deductions: Miscellaneous deductions from gross pay
+    """
     example_data = {
-        'Account Number': ['1234567890'],
-        'STAFF ID': ['EMP001'],
-        'Email': ['john.doe@company.com'],
-        'NAME': ['John Doe'],
-        'DEPARTMENT': ['Engineering'],
-        'JOB TITLE': ['Software Engineer'],
-        'ANNUAL GROSS PAY': [5000000],
-        'START DATE': [(datetime.now() - timedelta(days=365)).strftime('%Y-%m-%d')],
-        'END DATE': [datetime.now().strftime('%Y-%m-%d')],
-        'Contract Type': ['Full Time'],
-        'Reimbursements': [0],
-        'Other Deductions': [0]
+        'Account Number': ['1234567890', '0987654321'],
+        'STAFF ID': ['EMP001', 'CON001'],
+        'Email': ['john.doe@company.com', 'jane.smith@company.com'],
+        'NAME': ['John Doe', 'Jane Smith'],
+        'DEPARTMENT': ['Engineering', 'Design'],
+        'JOB TITLE': ['Software Engineer', 'UI Designer'],
+        'ANNUAL GROSS PAY': [5000000, 4000000],
+        'START DATE': [(datetime.now() - timedelta(days=365)).strftime('%Y-%m-%d'), (datetime.now() - timedelta(days=180)).strftime('%Y-%m-%d')],
+        'END DATE': [datetime.now().strftime('%Y-%m-%d'), datetime.now().strftime('%Y-%m-%d')],
+        'Contract Type': ['Full Time', 'Contract'],
+        'Reimbursements': [50000, 25000],
+        'Other Deductions': [10000, 5000]
     }
 
     df = pd.DataFrame(example_data)
