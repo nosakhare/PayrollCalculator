@@ -92,9 +92,6 @@ class SalaryCalculator:
         reimbursements = float(row.get('Reimbursements', 0))
         other_deductions = float(row.get('Other Deductions', 0))
 
-        # Adjust monthly gross (only subtract other deductions, not reimbursements)
-        adjusted_monthly_gross = round(prorated_monthly_gross - other_deductions, 2)
-
         # Calculate prorated components
         components = self.calculate_components(monthly_gross, working_ratio)
 
@@ -106,11 +103,11 @@ class SalaryCalculator:
             row['Contract Type']
         )
 
-        # Calculate CRA using adjusted gross and pension
-        cra = self.calculate_cra(adjusted_monthly_gross, pension)
+        # Calculate CRA using gross pay and pension (before other deductions)
+        cra = self.calculate_cra(prorated_monthly_gross, pension)
 
-        # Calculate taxable pay
-        taxable_pay = round(adjusted_monthly_gross - cra - pension, 2)
+        # Calculate taxable pay (before other deductions)
+        taxable_pay = round(prorated_monthly_gross - cra - pension, 2)
 
         # Calculate PAYE tax
         paye_tax = self.calculate_paye(taxable_pay)
