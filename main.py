@@ -124,6 +124,11 @@ def main():
         - ANNUAL GROSS PAY
         - START DATE
         - END DATE
+        - Contract Type (must be 'Full Time' or 'Contract')
+        - Reimbursements (additional payments/allowances)
+        - Other Deductions (miscellaneous deductions)
+
+        **Note:** Contract employees are not subject to pension deductions.
         """)
 
 if __name__ == "__main__":
