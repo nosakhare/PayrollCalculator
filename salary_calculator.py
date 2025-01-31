@@ -123,7 +123,6 @@ class SalaryCalculator:
             'PRORATED_MONTHLY_GROSS': prorated_monthly_gross,
             'REIMBURSEMENTS': reimbursements,
             'OTHER_DEDUCTIONS': other_deductions,
-            'ADJUSTED_MONTHLY_GROSS': adjusted_monthly_gross,
             **{f'COMP_{k}': v for k, v in components.items()},
             'CRA': cra,
             'PENSION': pension,
