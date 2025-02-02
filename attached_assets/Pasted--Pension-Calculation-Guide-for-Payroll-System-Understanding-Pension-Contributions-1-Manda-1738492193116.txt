@@ -1,0 +1,75 @@
+# Pension Calculation Guide for Payroll System
+
+## Understanding Pension Contributions
+
+### 1. Mandatory Employee Contribution (8%)
+The calculator should deduct 8% from the employee's monthly emoluments, which includes:
+- Basic salary
+- Housing allowance
+- Transport allowance
+
+This is a pre-tax deduction, meaning it reduces the employee's taxable income.
+
+### 2. Employer Contribution (10% minimum)
+- The employer must contribute at least 10% of the same monthly emoluments
+- Some employers may choose to pay the full 18% (covering both employee and employer portions)
+- This doesn't affect the employee's net pay calculation but must be shown on the payslip
+
+### 3. Voluntary Contribution
+- This is an optional extra contribution from the employee's salary
+- It's limited to a maximum of 1/3 of the monthly salary
+- This is a post-tax deduction (comes after tax calculation)
+- Must be tracked separately from mandatory contributions
+
+## How It Should Appear on the Payslip
+
+### 1. Mandatory Pension Section
+```
+PENSION CONTRIBUTIONS
+Employee Contribution (8%):    ₦XX,XXX.XX
+Employer Contribution (10%):   ₦XX,XXX.XX
+Total Mandatory Pension:       ₦XX,XXX.XX
+```
+
+### 2. Voluntary Pension Section (if applicable)
+```
+VOLUNTARY PENSION
+Voluntary Contribution:        ₦XX,XXX.XX
+```
+
+### 3. Net Pay Calculation Order
+1. Start with gross pay (basic + housing + transport + other allowances)
+2. Deduct 8% mandatory pension
+3. Calculate tax on the remaining amount
+4. Deduct voluntary contribution (if any)
+5. Show final net pay
+
+## Important Rules to Remember
+
+1. Minimum Wage Exception
+- If monthly salary is below ₦30,000, no pension deduction applies
+
+2. Timing Requirements
+- All pension deductions must be remitted within 7 days of salary payment
+
+3. Documentation Requirements
+- Each employee needs a Retirement Savings Account (RSA) PIN
+- Monthly contribution records must be maintained
+
+## Sample Calculation Example
+
+For an employee earning ₦300,000 monthly (basic: ₦200k, housing: ₦70k, transport: ₦30k):
+
+1. Calculate pensionable earnings:
+   - Total = ₦300,000
+
+2. Calculate mandatory deductions:
+   - Employee contribution (8%) = ₦24,000
+   - Employer contribution (10%) = ₦30,000
+
+3. Calculate taxable income:
+   - ₦300,000 - ₦24,000 = ₦276,000
+
+4. If there's a voluntary contribution:
+   - Maximum allowed = ₦100,000 (1/3 of monthly salary)
+   - This comes out after tax calculation
