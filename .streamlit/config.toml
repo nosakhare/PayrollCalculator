@@ -2,3 +2,5 @@
 [server]
 maxUploadSize = 200
 maxMessageSize = 200
+headless = true
+enableCORS = false
