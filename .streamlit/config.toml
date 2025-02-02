@@ -2,6 +2,3 @@
 [server]
 maxUploadSize = 200
 maxMessageSize = 200
-
-[global]
-dataFrameSerialization = "legacy"
