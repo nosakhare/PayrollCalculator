@@ -36,11 +36,24 @@ class SalaryCalculator:
             for component, percentage in self.components.items()
         }
 
-    def calculate_pension(self, basic, transport, housing, contract_type):
-        """Calculate employee pension contribution based on contract type."""
-        if contract_type.strip().upper() == 'CONTRACT':
-            return 0.00
-        return round(0.08 * (basic + transport + housing), 2)
+    def calculate_pension(self, basic, transport, housing, contract_type, monthly_gross, employer_rate=10, voluntary_pension=0):
+        """Calculate pension contributions."""
+        if contract_type.strip().upper() == 'CONTRACT' or monthly_gross < 30000:
+            return {
+                'employee_pension': 0.00,
+                'employer_pension': 0.00,
+                'voluntary_pension': 0.00
+            }
+        
+        pensionable_base = basic + transport + housing
+        employee_pension = round(0.08 * pensionable_base, 2)
+        employer_pension = round((employer_rate / 100) * pensionable_base, 2)
+        
+        return {
+            'employee_pension': employee_pension,
+            'employer_pension': employer_pension,
+            'voluntary_pension': round(voluntary_pension, 2)
+        }
 
     def calculate_cra(self, gross_pay, pension):
         """Calculate Consolidated Relief Allowance (CRA)."""
@@ -95,25 +108,34 @@ class SalaryCalculator:
         # Calculate prorated components
         components = self.calculate_components(monthly_gross, working_ratio)
 
-        # Calculate pension based on contract type
-        pension = self.calculate_pension(
+        # Calculate pension contributions
+        pension_details = self.calculate_pension(
             components['BASIC'],
             components['TRANSPORT'],
             components['HOUSING'],
-            row['Contract Type']
+            row['Contract Type'],
+            prorated_monthly_gross,
+            float(row.get('EMPLOYER_PENSION_RATE', 10)),
+            float(row.get('VOLUNTARY_PENSION', 0))
         )
 
-        # Calculate CRA using gross pay and pension (before other deductions)
-        cra = self.calculate_cra(prorated_monthly_gross, pension)
+        # Calculate CRA using gross pay and mandatory pension
+        total_mandatory_pension = pension_details['employee_pension']
+        cra = self.calculate_cra(prorated_monthly_gross, total_mandatory_pension)
 
         # Calculate taxable pay (before other deductions)
-        taxable_pay = round(prorated_monthly_gross - cra - pension, 2)
+        taxable_pay = round(prorated_monthly_gross - cra - pension_details['employee_pension'], 2)
 
         # Calculate PAYE tax
         paye_tax = self.calculate_paye(taxable_pay)
 
         # Calculate total deductions and net pay
-        total_deductions = round(paye_tax + pension + other_deductions, 2)
+        total_deductions = round(
+            paye_tax + 
+            pension_details['employee_pension'] + 
+            pension_details['voluntary_pension'] + 
+            other_deductions, 2
+        )
         net_pay = round(prorated_monthly_gross - total_deductions + reimbursements, 2)
 
         return {
@@ -125,7 +147,9 @@ class SalaryCalculator:
             'OTHER_DEDUCTIONS': other_deductions,
             **{f'COMP_{k}': v for k, v in components.items()},
             'CRA': cra,
-            'PENSION': pension,
+            'MANDATORY_PENSION': pension_details['employee_pension'],
+            'EMPLOYER_PENSION': pension_details['employer_pension'],
+            'VOLUNTARY_PENSION': pension_details['voluntary_pension'],
             'TAXABLE_PAY': taxable_pay,
             'PAYE_TAX': paye_tax,
             'TOTAL_DEDUCTIONS': total_deductions,
