@@ -8,7 +8,8 @@ import io
 st.set_page_config(
     page_title="Salary Calculation System",
     page_icon="💰",
-    layout="wide"
+    layout="wide",
+    server_address="0.0.0.0"
 )
 
 # Load custom CSS
