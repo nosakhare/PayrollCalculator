@@ -127,7 +127,6 @@ def main():
         - Contract Type (must be 'Full Time' or 'Contract')
         - Reimbursements (additional payments/allowances)
         - Other Deductions (miscellaneous deductions)
-        - RSA_PIN (Retirement Savings Account number)
         - VOLUNTARY_PENSION (Optional additional contribution)
         - EMPLOYER_PENSION_RATE (Minimum 10%)
 

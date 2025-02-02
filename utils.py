@@ -17,7 +17,6 @@ def validate_csv(df):
         'Contract Type',
         'Reimbursements',
         'Other Deductions',
-        'RSA_PIN',
         'VOLUNTARY_PENSION',
         'EMPLOYER_PENSION_RATE'
     ]
@@ -94,7 +93,6 @@ def generate_csv_template():
         'Contract Type': ['Full Time', 'Contract'],
         'Reimbursements': [50000, 25000],
         'Other Deductions': [10000, 5000],
-        'RSA_PIN': ['PEN123456789', 'PEN987654321'],
         'VOLUNTARY_PENSION': [0, 0],
         'EMPLOYER_PENSION_RATE': [10, 10]
     }
