@@ -127,6 +127,17 @@ def main():
         - Contract Type (must be 'Full Time' or 'Contract')
         - Reimbursements (additional payments/allowances)
         - Other Deductions (miscellaneous deductions)
+        - RSA_PIN (Retirement Savings Account number)
+        - VOLUNTARY_PENSION (Optional additional contribution)
+        - EMPLOYER_PENSION_RATE (Minimum 10%)
+
+        **Pension Rules:**
+        - Only full-time employees are eligible for pension
+        - Pension is not calculated for salaries below ₦30,000
+        - Employee contribution is 8% of pensionable earnings
+        - Employer contribution starts at 10% minimum
+        - Voluntary pension cannot exceed 1/3 of monthly salary
+        - Pensionable earnings = Basic Salary + Housing + Transport
 
         **Note:** Contract employees are not subject to pension deductions.
         """)
