@@ -144,10 +144,8 @@ class SalaryCalculator:
         )
         net_pay = round(prorated_monthly_gross - total_deductions + reimbursements, 2)
 
-        # Calculate total tax relief
-        vpc_tax_relief = self.calculate_tax_relief(pension_details['voluntary_pension'])
-        cra_difference = self.calculate_cra(prorated_monthly_gross, 0) - cra  # CRA difference due to VPC
-        total_tax_relief = round(vpc_tax_relief + cra_difference, 2)
+        # Calculate total tax relief (sum of all tax-deductible amounts)
+        total_tax_relief = round(cra + pension_details['employee_pension'] + pension_details['voluntary_pension'], 2)
         
         return {
             **row,
@@ -174,30 +172,4 @@ class SalaryCalculator:
         for _, row in df.iterrows():
             results.append(self.process_employee(row.to_dict()))
         return pd.DataFrame(results)
-    def calculate_tax_relief(self, vpc_amount):
-        """Calculate tax relief from voluntary pension contribution."""
-        if vpc_amount == 0:
-            return 0
-            
-        # Calculate tax saved using the progressive tax bands
-        annual_vpc = vpc_amount * 12
-        tax_saved = 0
-        remaining_vpc = annual_vpc
-        
-        tax_bands = [
-            (300000, 0.07),
-            (300000, 0.11),
-            (500000, 0.15),
-            (500000, 0.19),
-            (1600000, 0.21),
-            (float('inf'), 0.24)
-        ]
-        
-        for band, rate in tax_bands:
-            if remaining_vpc <= 0:
-                break
-            deductible_in_band = min(band, remaining_vpc)
-            tax_saved += deductible_in_band * rate
-            remaining_vpc -= band
-            
-        return round(tax_saved / 12, 2)  # Return monthly tax relief
+    
