@@ -128,7 +128,6 @@ def main():
         - Reimbursements (additional payments/allowances)
         - Other Deductions (miscellaneous deductions)
         - VOLUNTARY_PENSION (Optional additional contribution)
-        - EMPLOYER_PENSION_RATE (Minimum 10%)
 
         **Pension Rules:**
         - Only full-time employees are eligible for pension

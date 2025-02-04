@@ -92,8 +92,7 @@ def generate_csv_template():
         'Contract Type': ['Full Time', 'Contract'],
         'Reimbursements': [50000, 25000],
         'Other Deductions': [10000, 5000],
-        'VOLUNTARY_PENSION': [0, 0],
-        'EMPLOYER_PENSION_RATE': [10, 10]
+        'VOLUNTARY_PENSION': [0, 0]
     }
 
     df = pd.DataFrame(example_data)
