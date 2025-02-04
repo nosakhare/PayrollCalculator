@@ -147,24 +147,39 @@ class SalaryCalculator:
         # Calculate total tax relief (sum of all tax-deductible amounts)
         total_tax_relief = round(cra + pension_details['employee_pension'] + pension_details['voluntary_pension'], 2)
         
-        return {
-            **row,
-            'WORKING_DAYS_RATIO': working_ratio,
-            'TAX_RELIEF': total_tax_relief,
+        ordered_result = {
+            'Account Number': row['Account Number'],
+            'STAFF ID': row['STAFF ID'],
+            'Email': row['Email'],
+            'NAME': row['NAME'],
+            'DEPARTMENT': row['DEPARTMENT'],
+            'JOB TITLE': row['JOB TITLE'],
+            'Contract Type': row['Contract Type'],
+            'ANNUAL GROSS PAY': row['ANNUAL GROSS PAY'],
             'MONTHLY_GROSS': monthly_gross,
+            'START DATE': row['START DATE'],
+            'END DATE': row['END DATE'],
+            'WORKING_DAYS_RATIO': working_ratio,
             'PRORATED_MONTHLY_GROSS': prorated_monthly_gross,
-            'REIMBURSEMENTS': reimbursements,
-            'OTHER_DEDUCTIONS': other_deductions,
-            **{f'COMP_{k}': v for k, v in components.items()},
+            'COMP_BASIC': components['BASIC'],
+            'COMP_TRANSPORT': components['TRANSPORT'],
+            'COMP_HOUSING': components['HOUSING'],
+            'COMP_UTILITY': components['UTILITY'],
+            'COMP_MEAL': components['MEAL'],
+            'COMP_CLOTHING': components['CLOTHING'],
             'CRA': cra,
             'MANDATORY_PENSION': pension_details['employee_pension'],
-            'EMPLOYER_PENSION': pension_details['employer_pension'],
             'VOLUNTARY_PENSION': pension_details['voluntary_pension'],
+            'EMPLOYER_PENSION': pension_details['employer_pension'],
+            'TAX_RELIEF': total_tax_relief,
             'TAXABLE_PAY': taxable_pay,
             'PAYE_TAX': paye_tax,
+            'OTHER_DEDUCTIONS': other_deductions,
+            'REIMBURSEMENTS': reimbursements,
             'TOTAL_DEDUCTIONS': total_deductions,
             'NET_PAY': net_pay
         }
+        return ordered_result
 
     def process_dataframe(self, df):
         """Process entire dataframe of employees."""
