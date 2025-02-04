@@ -17,8 +17,7 @@ def validate_csv(df):
         'Contract Type',
         'Reimbursements',
         'Other Deductions',
-        'VOLUNTARY_PENSION',
-        'EMPLOYER_PENSION_RATE'
+        'VOLUNTARY_PENSION'
     ]
 
     # Check for required columns

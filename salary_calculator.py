@@ -36,23 +36,27 @@ class SalaryCalculator:
             for component, percentage in self.components.items()
         }
 
-    def calculate_pension(self, basic, transport, housing, contract_type, monthly_gross, employer_rate=10, voluntary_pension=0):
-        """Calculate pension contributions."""
+    def calculate_pension(self, basic, transport, housing, contract_type, monthly_gross, voluntary_pension=0):
+        """Calculate pension contributions after proration."""
         if contract_type.strip().upper() == 'CONTRACT' or monthly_gross < 30000:
             return {
                 'employee_pension': 0.00,
                 'employer_pension': 0.00,
-                'voluntary_pension': 0.00
+                'voluntary_pension': 0.00,
+                'total_pension': 0.00
             }
         
         pensionable_base = basic + transport + housing
-        employee_pension = round(0.08 * pensionable_base, 2)
-        employer_pension = round((employer_rate / 100) * pensionable_base, 2)
+        employee_pension = round(0.08 * pensionable_base, 2)  # Fixed 8%
+        employer_pension = round(0.10 * pensionable_base, 2)  # Fixed 10%
+        voluntary = round(voluntary_pension, 2)
+        total_pension = employee_pension + employer_pension + voluntary
         
         return {
             'employee_pension': employee_pension,
             'employer_pension': employer_pension,
-            'voluntary_pension': round(voluntary_pension, 2)
+            'voluntary_pension': voluntary,
+            'total_pension': total_pension
         }
 
     def calculate_cra(self, gross_pay, pension):
@@ -115,7 +119,6 @@ class SalaryCalculator:
             components['HOUSING'],
             row['Contract Type'],
             prorated_monthly_gross,
-            float(row.get('EMPLOYER_PENSION_RATE', 10)),
             float(row.get('VOLUNTARY_PENSION', 0))
         )
 
