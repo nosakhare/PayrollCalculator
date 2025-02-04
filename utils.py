@@ -36,14 +36,6 @@ def validate_csv(df):
         df['Reimbursements'] = pd.to_numeric(df['Reimbursements']).fillna(0)
         df['Other Deductions'] = pd.to_numeric(df['Other Deductions']).fillna(0)
         df['VOLUNTARY_PENSION'] = pd.to_numeric(df['VOLUNTARY_PENSION']).fillna(0)
-        df['EMPLOYER_PENSION_RATE'] = pd.to_numeric(df['EMPLOYER_PENSION_RATE']).fillna(10)
-
-        # Validate pension rates and amounts
-        if (df['EMPLOYER_PENSION_RATE'] < 10).any():
-            return {
-                'valid': False,
-                'message': "Employer pension rate must be at least 10%"
-            }
 
         # Validate voluntary pension (not exceeding 1/3 of monthly salary)
         monthly_salary = df['ANNUAL GROSS PAY'] / 12
