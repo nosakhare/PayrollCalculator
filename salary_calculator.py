@@ -122,12 +122,15 @@ class SalaryCalculator:
             float(row.get('VOLUNTARY_PENSION', 0))
         )
 
-        # Calculate CRA using gross pay and total pension (mandatory + voluntary)
-        total_pension = pension_details['employee_pension'] + pension_details['voluntary_pension']
-        cra = self.calculate_cra(prorated_monthly_gross, total_pension)
+        # Calculate adjusted gross income for CRA
+        statutory_deductions = pension_details['employee_pension'] + pension_details['voluntary_pension']
+        adjusted_gross = prorated_monthly_gross - statutory_deductions
+        
+        # Calculate CRA using adjusted gross income
+        cra = self.calculate_cra(adjusted_gross, 0)  # Pension already deducted from gross
 
-        # Calculate taxable pay (deducting both mandatory and voluntary pension)
-        taxable_pay = round(prorated_monthly_gross - cra - total_pension, 2)
+        # Calculate taxable pay
+        taxable_pay = round(adjusted_gross - cra, 2)
 
         # Calculate PAYE tax
         paye_tax = self.calculate_paye(taxable_pay)
