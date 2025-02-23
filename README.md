@@ -48,18 +48,6 @@ A professional payroll calculation system built with Streamlit that handles sala
 - Voluntary pension cap: 1/3 of monthly salary
 - Pensionable earnings = Basic + Housing + Transport
 
-## Running the Application
-
-```bash
-streamlit run main.py
-```
-
-The application will be available at port 5000.
-
-## API Support
-
-The system includes a REST API for integration. See `api_spec.md` for detailed documentation.
-
 ## Technology Stack
 
 - Python
