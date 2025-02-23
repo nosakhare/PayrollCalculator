@@ -11,9 +11,12 @@ st.set_page_config(
     layout="wide"
 )
 
-# Load custom CSS
+# Load custom CSS and AdSense script
 with open('styles.css') as f:
-    st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+    st.markdown(f'''
+        <style>{f.read()}</style>
+        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4067343505079138" crossorigin="anonymous"></script>
+    ''', unsafe_allow_html=True)
 
 def main():
     st.title("Professional Salary Calculation System")
