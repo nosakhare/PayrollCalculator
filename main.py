@@ -4,12 +4,20 @@ import numpy as np
 from salary_calculator import SalaryCalculator
 from utils import validate_csv, validate_percentages, generate_csv_template
 import io
+import streamlit.components.v1 as components
 
 st.set_page_config(
     page_title="Salary Calculation System",
     page_icon="💰",
     layout="wide"
 )
+
+# Inject AdSense verification script
+adsense_verification_code = """
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4067343505079138"
+     crossorigin="anonymous"></script>
+"""
+components.html(adsense_verification_code, height=0)
 
 # Load custom CSS
 with open('styles.css') as f:
