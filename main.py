@@ -15,11 +15,6 @@ st.set_page_config(
 with open('styles.css') as f:
     st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
 
-# Add Google AdSense script
-st.components.v1.html("""
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4067343505079138" crossorigin="anonymous"></script>
-""", height=0)
-
 def main():
     st.title("Professional Salary Calculation System")
 
