@@ -210,7 +210,9 @@
 
                 except Exception as e:
                     logger.error(f"Application error: {str(e)}")
-                    st.error("An unexpected error occurred. Please try again or contact support.")
+                    st.error(f"An unexpected error occurred: {str(e)}")
+                    import traceback
+                    logger.error(traceback.format_exc())
 
         if __name__ == "__main__":
             app = SalaryApp()
