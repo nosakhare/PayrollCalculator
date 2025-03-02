@@ -117,7 +117,6 @@ def main():
             col1, col2 = st.columns(2)
 
             with col1:
-                job_title = st.text_input("Job Title", key="single_job")
                 annual_gross = st.number_input("Annual Gross Pay", min_value=0.0, value=0.0, key="single_gross")
                 contract_type = st.selectbox("Contract Type", ["Full Time", "Contract"], key="single_contract")
 
@@ -143,7 +142,7 @@ def main():
                     'Email': '',
                     'NAME': '',
                     'DEPARTMENT': '',
-                    'JOB TITLE': job_title,
+                    'JOB TITLE': '',  # Now also empty as it's optional
                     'ANNUAL GROSS PAY': annual_gross,
                     'Contract Type': contract_type,
                     'START DATE': start_date.strftime('%Y-%m-%d'),
@@ -212,7 +211,6 @@ def main():
         - Email
         - Name
         - Department
-        - Job Title
         - Annual Gross Pay
         - Contract Type
         - Start Date
