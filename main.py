@@ -4,6 +4,7 @@ import numpy as np
 from salary_calculator import SalaryCalculator
 from utils import validate_csv, validate_percentages, generate_csv_template
 import io
+from datetime import datetime
 
 st.set_page_config(
     page_title="Salary Calculation System",
@@ -23,6 +24,8 @@ def main():
         st.session_state.uploaded_data = None
     if 'calculated_results' not in st.session_state:
         st.session_state.calculated_results = None
+    if 'single_calculation_result' not in st.session_state:
+        st.session_state.single_calculation_result = None
 
     # Sidebar for component configuration
     st.sidebar.header("Salary Component Configuration")
@@ -44,68 +47,157 @@ def main():
         st.sidebar.error("Total percentage must equal 100%")
         return
 
-    # File upload section
-    st.subheader("Upload Employee Data")
+    # Create tabs for different calculation methods
+    tab1, tab2 = st.tabs(["Bulk Upload", "Single Employee"])
 
-    # Add template download button
-    template_data = generate_csv_template()
-    st.download_button(
-        label="📥 Download CSV Template",
-        data=template_data,
-        file_name="salary_template.csv",
-        mime="text/csv",
-        help="Download a template CSV file with the required columns"
-    )
+    with tab1:
+        st.subheader("Upload Employee Data")
 
-    st.markdown("---")
+        # Add template download button
+        template_data = generate_csv_template()
+        st.download_button(
+            label="📥 Download CSV Template",
+            data=template_data,
+            file_name="salary_template.csv",
+            mime="text/csv",
+            help="Download a template CSV file with the required columns"
+        )
 
-    uploaded_file = st.file_uploader(
-        "Upload CSV file with employee data",
-        type=['csv'],
-        help="Required columns: Account Number, STAFF ID, Email, NAME, DEPARTMENT, JOB TITLE, ANNUAL GROSS PAY, START DATE, END DATE"
-    )
+        st.markdown("---")
 
-    if uploaded_file is not None:
-        try:
-            df = pd.read_csv(uploaded_file)
-            validation_result = validate_csv(df)
+        uploaded_file = st.file_uploader(
+            "Upload CSV file with employee data",
+            type=['csv'],
+            help="Required columns: Account Number, STAFF ID, Email, NAME, DEPARTMENT, JOB TITLE, ANNUAL GROSS PAY, START DATE, END DATE"
+        )
 
-            if validation_result['valid']:
-                st.session_state.uploaded_data = df
-                st.success("File uploaded successfully!")
+        if uploaded_file is not None:
+            try:
+                df = pd.read_csv(uploaded_file)
+                validation_result = validate_csv(df)
 
-                # Preview uploaded data
-                st.subheader("Data Preview")
-                st.dataframe(df.head(), use_container_width=True)
+                if validation_result['valid']:
+                    st.session_state.uploaded_data = df
+                    st.success("File uploaded successfully!")
 
-                # Process calculations
-                if st.button("Calculate Salaries"):
-                    with st.spinner("Processing salaries for all employees..."):
-                        calculator = SalaryCalculator(components)
-                        results = calculator.process_dataframe(df)
-                        st.session_state.calculated_results = results
+                    # Preview uploaded data
+                    st.subheader("Data Preview")
+                    st.dataframe(df.head(), use_container_width=True)
 
-                        # Display results
-                        st.subheader("Calculation Results")
-                        st.dataframe(results.head(), use_container_width=True)
+                    # Process calculations
+                    if st.button("Calculate Salaries"):
+                        with st.spinner("Processing salaries for all employees..."):
+                            calculator = SalaryCalculator(components)
+                            results = calculator.process_dataframe(df)
+                            st.session_state.calculated_results = results
 
-                        # Export option
-                        if st.download_button(
-                            label="Download Results CSV",
-                            data=results.to_csv(index=False).encode('utf-8'),
-                            file_name="salary_calculations.csv",
-                            mime="text/csv"
-                        ):
-                            st.success("Download started!")
-            else:
-                st.error(f"Invalid CSV structure: {validation_result['message']}")
+                            # Display results
+                            st.subheader("Calculation Results")
+                            st.dataframe(results.head(), use_container_width=True)
 
-        except Exception as e:
-            st.error(f"Error processing file: {str(e)}")
+                            # Export option
+                            if st.download_button(
+                                label="Download Results CSV",
+                                data=results.to_csv(index=False).encode('utf-8'),
+                                file_name="salary_calculations.csv",
+                                mime="text/csv"
+                            ):
+                                st.success("Download started!")
+                else:
+                    st.error(f"Invalid CSV structure: {validation_result['message']}")
+
+            except Exception as e:
+                st.error(f"Error processing file: {str(e)}")
+
+    with tab2:
+        st.subheader("Single Employee Calculation")
+
+        # Form for single employee data
+        with st.form("single_employee_form"):
+            col1, col2 = st.columns(2)
+
+            with col1:
+                account_number = st.text_input("Account Number", key="single_account")
+                staff_id = st.text_input("Staff ID", key="single_staff_id")
+                email = st.text_input("Email", key="single_email")
+                name = st.text_input("Name", key="single_name")
+                department = st.text_input("Department", key="single_department")
+
+            with col2:
+                job_title = st.text_input("Job Title", key="single_job")
+                annual_gross = st.number_input("Annual Gross Pay", min_value=0.0, value=0.0, key="single_gross")
+                contract_type = st.selectbox("Contract Type", ["Full Time", "Contract"], key="single_contract")
+                start_date = st.date_input("Start Date", key="single_start")
+                end_date = st.date_input("End Date", key="single_end")
+
+            col3, col4 = st.columns(2)
+            with col3:
+                reimbursements = st.number_input("Reimbursements", min_value=0.0, value=0.0, key="single_reimburse")
+                other_deductions = st.number_input("Other Deductions", min_value=0.0, value=0.0, key="single_deduct")
+
+            with col4:
+                voluntary_pension = st.number_input("Voluntary Pension", min_value=0.0, value=0.0, key="single_vol_pension")
+
+            submitted = st.form_submit_button("Calculate Salary")
+
+            if submitted:
+                # Create a single-row DataFrame
+                single_employee_data = pd.DataFrame([{
+                    'Account Number': account_number,
+                    'STAFF ID': staff_id,
+                    'Email': email,
+                    'NAME': name,
+                    'DEPARTMENT': department,
+                    'JOB TITLE': job_title,
+                    'ANNUAL GROSS PAY': annual_gross,
+                    'Contract Type': contract_type,
+                    'START DATE': start_date.strftime('%Y-%m-%d'),
+                    'END DATE': end_date.strftime('%Y-%m-%d'),
+                    'Reimbursements': reimbursements,
+                    'Other Deductions': other_deductions,
+                    'VOLUNTARY_PENSION': voluntary_pension
+                }])
+
+                calculator = SalaryCalculator(components)
+                result = calculator.process_dataframe(single_employee_data)
+                st.session_state.single_calculation_result = result
+
+        # Display single calculation results
+        if st.session_state.single_calculation_result is not None:
+            st.subheader("Calculation Results")
+            result = st.session_state.single_calculation_result.iloc[0]
+
+            # Create an organized display of results
+            col1, col2, col3 = st.columns(3)
+
+            with col1:
+                st.markdown("### Gross Pay")
+                st.write(f"Monthly Gross: ₦{result['MONTHLY_GROSS']:,.2f}")
+                st.write(f"Prorated Monthly: ₦{result['PRORATED_MONTHLY_GROSS']:,.2f}")
+                st.write(f"Working Days Ratio: {result['WORKING_DAYS_RATIO']:.2%}")
+
+            with col2:
+                st.markdown("### Components")
+                st.write(f"Basic: ₦{result['COMP_BASIC']:,.2f}")
+                st.write(f"Transport: ₦{result['COMP_TRANSPORT']:,.2f}")
+                st.write(f"Housing: ₦{result['COMP_HOUSING']:,.2f}")
+                st.write(f"Utility: ₦{result['COMP_UTILITY']:,.2f}")
+                st.write(f"Meal: ₦{result['COMP_MEAL']:,.2f}")
+                st.write(f"Clothing: ₦{result['COMP_CLOTHING']:,.2f}")
+
+            with col3:
+                st.markdown("### Deductions & Net")
+                st.write(f"PAYE Tax: ₦{result['PAYE_TAX']:,.2f}")
+                st.write(f"Pension (Employee): ₦{result['MANDATORY_PENSION']:,.2f}")
+                st.write(f"Pension (Employer): ₦{result['EMPLOYER_PENSION']:,.2f}")
+                st.write(f"Voluntary Pension: ₦{result['VOLUNTARY_PENSION']:,.2f}")
+                st.write(f"Other Deductions: ₦{result['OTHER_DEDUCTIONS']:,.2f}")
+                st.markdown(f"**Net Pay: ₦{result['NET_PAY']:,.2f}**")
 
     # Instructions
     with st.expander("How to Use"):
         st.markdown("""
+        ### Bulk Upload Method:
         1. Download the CSV template using the button above
         2. Fill in the template with your employee data
         3. Configure salary component percentages in the sidebar
@@ -114,20 +206,27 @@ def main():
         6. Click 'Calculate Salaries' to process all employees
         7. Download the results
 
-        **Required CSV Columns:**
+        ### Single Employee Method:
+        1. Configure salary component percentages in the sidebar
+        2. Fill in the employee details in the form
+        3. Click 'Calculate Salary' to see the results
+
+        **Required Fields:**
         - Account Number
-        - STAFF ID
+        - Staff ID
         - Email
-        - NAME
-        - DEPARTMENT
-        - JOB TITLE
-        - ANNUAL GROSS PAY
-        - START DATE
-        - END DATE
-        - Contract Type (must be 'Full Time' or 'Contract')
+        - Name
+        - Department
+        - Job Title
+        - Annual Gross Pay
+        - Contract Type
+        - Start Date
+        - End Date
+
+        **Optional Fields:**
         - Reimbursements (additional payments/allowances)
         - Other Deductions (miscellaneous deductions)
-        - VOLUNTARY_PENSION (Optional additional contribution)
+        - Voluntary Pension (additional contribution)
 
         **Pension Rules:**
         - Only full-time employees are eligible for pension
