@@ -167,8 +167,6 @@ def main():
             with col1:
                 st.markdown("### Gross Pay")
                 st.write(f"Monthly Gross: ₦{result['MONTHLY_GROSS']:,.2f}")
-                st.write(f"Prorated Monthly: ₦{result['PRORATED_MONTHLY_GROSS']:,.2f}")
-                st.write(f"Working Days Ratio: {result['WORKING_DAYS_RATIO']:.2%}")
 
             with col2:
                 st.markdown("### Components")
