@@ -67,7 +67,8 @@ def main():
             with col4:
                 voluntary_pension = st.number_input("Extra Pension Contribution (₦)", min_value=0.0, value=0.0, key="single_vol_pension")
 
-            submitted = st.form_submit_button("Show Me the Results")
+            # Only enable the button if annual_gross is greater than zero
+            submitted = st.form_submit_button("Show Me the Results", disabled=(annual_gross <= 0))
 
             if submitted:
                 # Create a single-row DataFrame with empty values for optional fields
