@@ -26,11 +26,11 @@ document.addEventListener('DOMContentLoaded', () => {
     tabButtons.forEach(button => {
         button.addEventListener('click', () => {
             const tabId = button.getAttribute('data-tab');
-            
+
             // Update active states
             tabButtons.forEach(btn => btn.classList.remove('active'));
             tabContents.forEach(content => content.classList.remove('active'));
-            
+
             button.classList.add('active');
             document.getElementById(tabId === 'single' ? 'singleEmployee' : 'multipleEmployees').classList.add('active');
         });
@@ -38,34 +38,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Component percentage handling
     Object.values(components).forEach(input => {
-        input.addEventListener('input', updateTotalPercentage);
+        input.addEventListener('input', validateForm);
     });
 
-    function updateTotalPercentage() {
+    // Add annual gross input to validation
+    document.getElementById('annualGross').addEventListener('input', validateForm);
+
+    function validateForm() {
         const total = Object.values(components)
             .reduce((sum, input) => sum + Number(input.value), 0);
-        
+
         totalPercentageDisplay.textContent = `${total.toFixed(1)}%`;
         const isValid = utils.validatePercentages(total);
-        
-        percentageError.classList.toggle('hidden', isValid);
-        calculateButton.disabled = !isValid || Number(document.getElementById('annualGross').value) <= 0;
-    }
+        const annualGrossValid = Number(document.getElementById('annualGross').value) > 0;
 
-    // Annual gross input handling
-    document.getElementById('annualGross').addEventListener('input', (e) => {
-        calculateButton.disabled = !utils.validatePercentages(
-            Object.values(components).reduce((sum, input) => sum + Number(input.value), 0)
-        ) || Number(e.target.value) <= 0;
-    });
+        percentageError.classList.toggle('hidden', isValid);
+        calculateButton.disabled = !isValid || !annualGrossValid;
+    }
 
     // Single employee form handling
     singleEmployeeForm.addEventListener('submit', (e) => {
         e.preventDefault();
-        
-        const componentPercentages = Object.fromEntries(
-            Object.entries(components).map(([key, input]) => [key, Number(input.value)])
-        );
+
+        const componentPercentages = {
+            'BASIC': Number(components.BASIC.value),
+            'TRANSPORT': Number(components.TRANSPORT.value),
+            'HOUSING': Number(components.HOUSING.value),
+            'UTILITY': Number(components.UTILITY.value)
+        };
 
         const calculator = new SalaryCalculator(componentPercentages);
         const result = calculator.processEmployee({
@@ -134,7 +134,7 @@ document.addEventListener('DOMContentLoaded', () => {
         sections.forEach(section => {
             const sectionDiv = document.createElement('div');
             sectionDiv.className = 'result-section';
-            
+
             const title = document.createElement('h3');
             title.textContent = section.title;
             sectionDiv.appendChild(title);
@@ -145,14 +145,14 @@ document.addEventListener('DOMContentLoaded', () => {
             section.items.forEach(([label, value]) => {
                 const item = document.createElement('div');
                 item.className = 'result-item';
-                
+
                 const labelSpan = document.createElement('span');
                 labelSpan.className = 'result-label';
                 labelSpan.textContent = label;
 
                 const valueSpan = document.createElement('span');
                 valueSpan.className = 'result-value';
-                valueSpan.textContent = typeof value === 'number' ? 
+                valueSpan.textContent = typeof value === 'number' ?
                     utils.formatCurrency(value) : value;
 
                 item.appendChild(labelSpan);
@@ -174,7 +174,7 @@ document.addEventListener('DOMContentLoaded', () => {
         resultsSection.classList.add('hidden');
         singleEmployeeForm.classList.remove('hidden');
         singleEmployeeForm.reset();
-        updateTotalPercentage();
+        validateForm();
     });
 
     // File upload handling
@@ -197,7 +197,7 @@ document.addEventListener('DOMContentLoaded', () => {
         reader.onload = function(e) {
             const csv = e.target.result;
             const results = parseCSV(csv);
-            
+
             if (results.valid) {
                 displayPreview(results.data);
                 preview.classList.remove('hidden');
@@ -234,10 +234,10 @@ document.addEventListener('DOMContentLoaded', () => {
     function displayPreview(data) {
         // Display first few rows
         const previewData = data.slice(0, 5);
-        
+
         // Create table
         const table = document.createElement('table');
-        
+
         // Add headers
         const headers = Object.keys(previewData[0]);
         const headerRow = document.createElement('tr');
@@ -247,7 +247,7 @@ document.addEventListener('DOMContentLoaded', () => {
             headerRow.appendChild(th);
         });
         table.appendChild(headerRow);
-        
+
         // Add data rows
         previewData.forEach(row => {
             const tr = document.createElement('tr');
@@ -258,7 +258,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             table.appendChild(tr);
         });
-        
+
         // Clear and update preview
         previewTable.innerHTML = '';
         previewTable.appendChild(table);
@@ -286,13 +286,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Calculate all button handling
     calculateAllBtn.addEventListener('click', () => {
-        const componentPercentages = Object.fromEntries(
-            Object.entries(components).map(([key, input]) => [key, Number(input.value)])
-        );
+        const componentPercentages = {
+            'BASIC': Number(components.BASIC.value),
+            'TRANSPORT': Number(components.TRANSPORT.value),
+            'HOUSING': Number(components.HOUSING.value),
+            'UTILITY': Number(components.UTILITY.value)
+        };
 
         const calculator = new SalaryCalculator(componentPercentages);
         const results = calculator.processDataframe(parseCSV(csvUpload.files[0]).data);
-        
+
         displayBulkResults(results);
         preview.classList.add('hidden');
         bulkResults.classList.remove('hidden');
@@ -301,7 +304,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function displayBulkResults(results) {
         // Create table
         const table = document.createElement('table');
-        
+
         // Add headers
         const headers = Object.keys(results[0]);
         const headerRow = document.createElement('tr');
@@ -311,35 +314,35 @@ document.addEventListener('DOMContentLoaded', () => {
             headerRow.appendChild(th);
         });
         table.appendChild(headerRow);
-        
+
         // Add data rows
         results.forEach(row => {
             const tr = document.createElement('tr');
             headers.forEach(header => {
                 const td = document.createElement('td');
-                td.textContent = typeof row[header] === 'number' ? 
+                td.textContent = typeof row[header] === 'number' ?
                     utils.formatCurrency(row[header]) : row[header];
                 tr.appendChild(td);
             });
             table.appendChild(tr);
         });
-        
+
         // Clear and update results
         resultsTable.innerHTML = '';
         resultsTable.appendChild(table);
-        
+
         // Store results for download
         downloadResultsBtn.onclick = () => {
             const csv = [
                 headers.join(','),
-                ...results.map(row => 
-                    headers.map(header => 
+                ...results.map(row =>
+                    headers.map(header =>
                         typeof row[header] === 'string' && row[header].includes(',') ?
                             `"${row[header]}"` : row[header]
                     ).join(',')
                 )
             ].join('\n');
-            
+
             downloadCSV(csv, 'salary_results.csv');
         };
     }
@@ -352,5 +355,5 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Initialize component percentages
-    updateTotalPercentage();
+    validateForm();
 });
