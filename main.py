@@ -1,11 +1,21 @@
-
 import streamlit as st
+
+# Must be the first Streamlit command
+st.set_page_config(page_title="Nigerian Salary Calculator", page_icon="💰", layout="wide")
+
+# Check if the request is for ads.txt
+path = st.experimental_get_query_params().get("path", [""])[0]
+if path == "ads.txt":
+    st.write("google.com, pub-4067343505079138, DIRECT, f08c47fec0942fa0")
+    st.stop()
+
 import pandas as pd
 from datetime import datetime, timedelta
 from salary_calculator import SalaryCalculator
 from utils import validate_percentages, generate_csv_template
 
 def main():
+    st.sidebar.image("generated-icon.png", width=100)
     st.title("Simple Salary Calculator for Nigerian Employees")
 
     # Initialize session state
@@ -18,7 +28,7 @@ def main():
 
     # Sidebar for component configuration
     st.sidebar.header("Customize Salary Breakdown")
-    
+
     # Add new description
     st.sidebar.write("Adjust how the salary is split between different components. These percentages affect tax and pension calculations.")
 
@@ -44,7 +54,7 @@ def main():
     with tab1:
         # Add welcome message
         st.write("Welcome! Calculate accurate salaries with proper tax and pension deductions for individual employees.")
-        
+
         st.subheader("Calculate One Employee's Salary")
 
         # Form for single employee data
@@ -96,66 +106,66 @@ def main():
         if st.session_state.single_calculation_result is not None:
             st.subheader("Your Salary Breakdown")
             result = st.session_state.single_calculation_result.iloc[0]
-            
+
             # Create columns for better layout
             col1, col2 = st.columns(2)
-            
+
             with col1:
                 st.metric("Monthly Gross", f"₦{result['MONTHLY_GROSS']:,.2f}")
                 st.metric("Prorated Monthly", f"₦{result['PRORATED_MONTHLY_GROSS']:,.2f}")
                 st.metric("Working Days Ratio", f"{result['WORKING_DAYS_RATIO'] * 100:.1f}%")
-            
+
             with col2:
                 st.metric("PAYE Tax", f"₦{result['PAYE_TAX']:,.2f}")
                 st.metric("Total Deductions", f"₦{result['TOTAL_DEDUCTIONS']:,.2f}")
                 st.metric("Net Pay", f"₦{result['NET_PAY']:,.2f}")
-            
+
             # Create tabs for detailed breakdown
             details_tab1, details_tab2, details_tab3 = st.tabs(["Components", "Deductions", "Tax"])
-            
+
             with details_tab1:
                 st.subheader("Salary Components")
                 component_data = {
                     "Component": ["Basic", "Transport", "Housing", "Utility"],
                     "Amount": [
-                        f"₦{result['COMP_BASIC']:,.2f}", 
-                        f"₦{result['COMP_TRANSPORT']:,.2f}", 
-                        f"₦{result['COMP_HOUSING']:,.2f}", 
+                        f"₦{result['COMP_BASIC']:,.2f}",
+                        f"₦{result['COMP_TRANSPORT']:,.2f}",
+                        f"₦{result['COMP_HOUSING']:,.2f}",
                         f"₦{result['COMP_UTILITY']:,.2f}"
                     ]
                 }
                 st.dataframe(pd.DataFrame(component_data))
-                
+
             with details_tab2:
                 st.subheader("Deductions")
                 deduction_data = {
                     "Deduction": ["Employee Pension", "Voluntary Pension", "PAYE Tax", "Other Deductions", "Total Deductions"],
                     "Amount": [
-                        f"₦{result['MANDATORY_PENSION']:,.2f}", 
-                        f"₦{result['VOLUNTARY_PENSION']:,.2f}", 
-                        f"₦{result['PAYE_TAX']:,.2f}", 
-                        f"₦{result['OTHER_DEDUCTIONS']:,.2f}", 
+                        f"₦{result['MANDATORY_PENSION']:,.2f}",
+                        f"₦{result['VOLUNTARY_PENSION']:,.2f}",
+                        f"₦{result['PAYE_TAX']:,.2f}",
+                        f"₦{result['OTHER_DEDUCTIONS']:,.2f}",
                         f"₦{result['TOTAL_DEDUCTIONS']:,.2f}"
                     ]
                 }
                 st.dataframe(pd.DataFrame(deduction_data))
-                
+
             with details_tab3:
                 st.subheader("Tax Details")
                 tax_data = {
                     "Item": ["Consolidated Relief Allowance (CRA)", "Taxable Pay", "Tax Relief", "PAYE Tax"],
                     "Amount": [
-                        f"₦{result['CRA']:,.2f}", 
-                        f"₦{result['TAXABLE_PAY']:,.2f}", 
-                        f"₦{result['TAX_RELIEF']:,.2f}", 
+                        f"₦{result['CRA']:,.2f}",
+                        f"₦{result['TAXABLE_PAY']:,.2f}",
+                        f"₦{result['TAX_RELIEF']:,.2f}",
                         f"₦{result['PAYE_TAX']:,.2f}"
                     ]
                 }
                 st.dataframe(pd.DataFrame(tax_data))
-                
+
             # Additional info
             st.write("Note: Employer contribution to pension: ", f"₦{result['EMPLOYER_PENSION']:,.2f}")
-            
+
             # Button to calculate another salary
             if st.button("Start a New Calculation"):
                 st.session_state.single_calculation_result = None
@@ -164,9 +174,9 @@ def main():
     with tab2:
         # Add welcome message
         st.write("Need to process your entire team? Upload a CSV file to calculate multiple salaries at once.")
-        
+
         st.subheader("Upload Your Team's Information")
-        
+
         # Template download button
         csv_template = generate_csv_template()
         st.download_button(
@@ -175,25 +185,25 @@ def main():
             file_name="employee_template.csv",
             mime="text/csv"
         )
-        
+
         # File uploader
         uploaded_file = st.file_uploader("Select Your File", type=["csv"])
-        
+
         if uploaded_file is not None:
             try:
                 df = pd.read_csv(uploaded_file)
                 st.session_state.uploaded_data = df
-                
+
                 # Show preview of uploaded data
                 st.subheader("Data Preview")
                 st.dataframe(df.head())
-                
+
                 # Button to process data
                 if st.button("Calculate All Salaries"):
                     calculator = SalaryCalculator(components)
                     results = calculator.process_dataframe(df)
                     st.session_state.calculated_results = results
-                    
+
             except Exception as e:
                 st.error(f"Error processing file: {str(e)}")
 
@@ -201,7 +211,7 @@ def main():
         if st.session_state.calculated_results is not None:
             st.subheader("Your Salary Breakdown")
             st.dataframe(st.session_state.calculated_results)
-            
+
             # Download button for results
             csv_results = st.session_state.calculated_results.to_csv(index=False).encode('utf-8')
             st.download_button(
@@ -210,7 +220,7 @@ def main():
                 file_name="salary_results.csv",
                 mime="text/csv"
             )
-            
+
             # Button to calculate again
             if st.button("Start a New Calculation"):
                 st.session_state.uploaded_data = None
@@ -262,8 +272,6 @@ def main():
         """)
 
 if __name__ == "__main__":
-    st.set_page_config(page_title="Nigerian Salary Calculator", page_icon="💰", layout="wide")
-    st.sidebar.image("generated-icon.png", width=100)
     st.markdown("""
     <style>
     .reportview-container .main .block-container{
