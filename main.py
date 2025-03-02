@@ -158,33 +158,45 @@ def main():
 
         # Display single calculation results
         if st.session_state.single_calculation_result is not None:
-            st.subheader("Calculation Results")
+            st.subheader("Salary Breakdown")
             result = st.session_state.single_calculation_result.iloc[0]
 
-            # Create an organized display of results
-            col1, col2, col3 = st.columns(3)
-
+            # Employment Details Section
+            st.markdown("### Employment Details")
+            col1, col2 = st.columns(2)
             with col1:
-                st.markdown("### Gross Pay")
-                st.write(f"Monthly Gross: ₦{result['MONTHLY_GROSS']:,.2f}")
-
+                st.write("Contract Type:", result['Contract Type'])
             with col2:
-                st.markdown("### Components")
-                st.write(f"Basic: ₦{result['COMP_BASIC']:,.2f}")
-                st.write(f"Transport: ₦{result['COMP_TRANSPORT']:,.2f}")
-                st.write(f"Housing: ₦{result['COMP_HOUSING']:,.2f}")
-                st.write(f"Utility: ₦{result['COMP_UTILITY']:,.2f}")
-                st.write(f"Meal: ₦{result['COMP_MEAL']:,.2f}")
-                st.write(f"Clothing: ₦{result['COMP_CLOTHING']:,.2f}")
+                st.write(f"Work Period: {result['START DATE']} to {result['END DATE']}")
 
-            with col3:
-                st.markdown("### Deductions & Net")
-                st.write(f"PAYE Tax: ₦{result['PAYE_TAX']:,.2f}")
-                st.write(f"Pension (Employee): ₦{result['MANDATORY_PENSION']:,.2f}")
-                st.write(f"Pension (Employer): ₦{result['EMPLOYER_PENSION']:,.2f}")
-                st.write(f"Voluntary Pension: ₦{result['VOLUNTARY_PENSION']:,.2f}")
-                st.write(f"Other Deductions: ₦{result['OTHER_DEDUCTIONS']:,.2f}")
-                st.markdown(f"**Net Pay: ₦{result['NET_PAY']:,.2f}**")
+            # Earnings Section
+            st.markdown("### Earnings")
+            st.write(f"Annual Gross: ₦{result['ANNUAL GROSS PAY']:,.2f}")
+            st.write(f"Monthly Gross: ₦{result['MONTHLY_GROSS']:,.2f}")
+            st.write(f"Basic: ₦{result['COMP_BASIC']:,.2f}")
+            st.write(f"Transport: ₦{result['COMP_TRANSPORT']:,.2f}")
+            st.write(f"Housing: ₦{result['COMP_HOUSING']:,.2f}")
+
+            # Deductions Section
+            st.markdown("### Deductions")
+            st.write(f"PAYE Tax: ₦{result['PAYE_TAX']:,.2f}")
+            st.write(f"Pension: ₦{result['MANDATORY_PENSION']:,.2f}")
+            st.write(f"Voluntary Pension: ₦{result['VOLUNTARY_PENSION']:,.2f}")
+            st.write(f"Other Deductions: ₦{result['OTHER_DEDUCTIONS']:,.2f}")
+            st.write(f"Total Deductions: ₦{result['TOTAL_DEDUCTIONS']:,.2f}")
+
+            # Summary Section with net pay
+            st.markdown("### Summary")
+            st.write("Net Pay")
+            st.markdown(f"### ₦{result['NET_PAY']:,.2f}")
+
+            # Download button for CSV
+            st.download_button(
+                label="Download Breakdown as CSV",
+                data=result.to_frame().T.to_csv(index=False).encode('utf-8'),
+                file_name="salary_breakdown.csv",
+                mime="text/csv"
+            )
 
     # Instructions
     with st.expander("How to Use"):
