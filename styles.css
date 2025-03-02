@@ -1,207 +1,73 @@
-/* Reset and base styles */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
 /* Main container styling */
 .main {
-    max-width: 1200px;
-    margin: 0 auto;
     padding: 2rem;
 }
 
 /* Header styling */
 .stTitle {
     color: #1a237e;
-    font-weight: 700;
-    font-size: 2.5rem;
-    margin-bottom: 2rem;
-    text-align: center;
-    border-bottom: 3px solid #1a237e;
-    padding-bottom: 1rem;
-}
-
-/* Subheader styling */
-.stSubheader {
-    color: #283593;
     font-weight: 600;
-    margin: 1.5rem 0;
-    padding-left: 0.5rem;
-    border-left: 4px solid #283593;
+    margin-bottom: 2rem;
 }
 
 /* Sidebar styling */
 .sidebar .sidebar-content {
     background-color: #f8f9fa;
-    padding: 1.5rem;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.sidebar .stMarkdown {
-    font-size: 0.9rem;
 }
 
 /* File uploader styling */
 .stFileUploader {
-    border: 2px dashed #3f51b5;
+    border: 2px dashed #cccccc;
     border-radius: 8px;
-    padding: 2rem;
-    margin: 1.5rem 0;
-    background-color: #f5f7ff;
-    transition: all 0.3s ease;
-}
-
-.stFileUploader:hover {
-    border-color: #1a237e;
-    background-color: #e8eaf6;
+    padding: 1rem;
+    margin: 1rem 0;
 }
 
 /* Button styling */
 .stButton>button {
-    background-color: #3f51b5;
+    background-color: #0066cc;
     color: white;
     font-weight: 500;
-    padding: 0.75rem 1.5rem;
-    border-radius: 6px;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
     border: none;
-    transition: all 0.3s ease;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
 }
 
 .stButton>button:hover {
-    background-color: #283593;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-}
-
-.stButton>button:active {
-    transform: translateY(0);
-}
-
-/* Download button styling */
-.stDownloadButton>button {
-    background-color: #4caf50;
-    color: white;
-    border: none;
-    padding: 0.75rem 1.5rem;
-    border-radius: 6px;
-    font-weight: 500;
-    transition: all 0.3s ease;
-}
-
-.stDownloadButton>button:hover {
-    background-color: #388e3c;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    background-color: #0052a3;
 }
 
 /* DataFrame styling */
 .dataframe {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: 'Arial', sans-serif;
     font-size: 14px;
-    border-collapse: collapse;
-    width: 100%;
-    margin: 1rem 0;
-    background: white;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    border-radius: 8px;
-    overflow: hidden;
-}
-
-.dataframe th {
-    background-color: #e8eaf6;
-    color: #1a237e;
-    font-weight: 600;
-    text-align: left;
-    padding: 12px;
-    border-bottom: 2px solid #c5cae9;
-}
-
-.dataframe td {
-    padding: 10px;
-    border-bottom: 1px solid #e0e0e0;
-}
-
-.dataframe tr:hover {
-    background-color: #f5f7ff;
 }
 
 /* Metrics styling */
 .stMetric {
-    background-color: white;
-    padding: 1.5rem;
+    background-color: #f8f9fa;
+    padding: 1rem;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    transition: all 0.3s ease;
 }
 
-.stMetric:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-}
-
-/* Alert/Message styling */
+/* Error message styling */
 .stAlert {
     padding: 1rem;
-    border-radius: 6px;
+    border-radius: 4px;
     margin: 1rem 0;
-    font-weight: 500;
 }
 
+/* Success message styling */
 .success {
-    background-color: #e8f5e9;
-    color: #2e7d32;
-    border-left: 4px solid #2e7d32;
+    background-color: #d4edda;
+    color: #155724;
 }
 
+/* Error message styling */
 .error {
-    background-color: #ffebee;
-    color: #c62828;
-    border-left: 4px solid #c62828;
-}
-
-.warning {
-    background-color: #fff3e0;
-    color: #ef6c00;
-    border-left: 4px solid #ef6c00;
-}
-
-.info {
-    background-color: #e3f2fd;
-    color: #1565c0;
-    border-left: 4px solid #1565c0;
-}
-
-/* Expander styling */
-.streamlit-expanderHeader {
-    background-color: #f5f7ff;
-    border-radius: 6px;
-    padding: 0.75rem 1rem;
-    font-weight: 500;
-    color: #283593;
-}
-
-.streamlit-expanderContent {
-    background-color: white;
-    border: 1px solid #e0e0e0;
-    border-radius: 0 0 6px 6px;
-    padding: 1.5rem;
-}
-
-/* Help text styling */
-.help-text {
-    font-size: 0.9rem;
-    color: #666;
-    margin-top: 0.5rem;
-}
-
-/* Loading spinner styling */
-.stSpinner {
-    border-color: #3f51b5;
+    background-color: #f8d7da;
+    color: #721c24;
 }
 
 /* Responsive adjustments */
@@ -209,61 +75,8 @@
     .main {
         padding: 1rem;
     }
-
+    
     .stTitle {
-        font-size: 2rem;
+        font-size: 1.5rem;
     }
-
-    .stFileUploader {
-        padding: 1rem;
-    }
-
-    .dataframe {
-        font-size: 12px;
-    }
-
-    .stButton>button,
-    .stDownloadButton>button {
-        padding: 0.5rem 1rem;
-        width: 100%;
-    }
-}
-
-/* Dark mode adjustments */
-@media (prefers-color-scheme: dark) {
-    .sidebar .sidebar-content {
-        background-color: #1e1e1e;
-    }
-
-    .dataframe {
-        background-color: #2d2d2d;
-    }
-
-    .dataframe th {
-        background-color: #1a237e;
-        color: white;
-    }
-
-    .dataframe tr:hover {
-        background-color: #3d3d3d;
-    }
-
-    .stMetric {
-        background-color: #2d2d2d;
-    }
-}
-
-/* Animation keyframes */
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-/* Apply animations */
-.stTitle,
-.stSubheader,
-.stFileUploader,
-.stMetric,
-.dataframe {
-    animation: fadeIn 0.5s ease-out;
 }

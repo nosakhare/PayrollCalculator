@@ -1,78 +1,33 @@
 import pandas as pd
 import numpy as np
 from datetime import datetime
-from dataclasses import dataclass
-from typing import Dict, List, Optional, TypedDict
-
-@dataclass
-class PensionDetails:
-    employee_pension: float
-    employer_pension: float
-    voluntary_pension: float
-    total_pension: float
-
-class SalaryComponents(TypedDict):
-    BASIC: float
-    TRANSPORT: float
-    HOUSING: float
-    UTILITY: float
-    MEAL: float
-    CLOTHING: float
 
 class SalaryCalculator:
-    # Class constants
-    EMPLOYEE_PENSION_RATE: float = 0.08
-    EMPLOYER_PENSION_RATE: float = 0.10
-    MINIMUM_PENSION_SALARY: float = 30000
-    CRA_RATE: float = 0.20
-    MINIMUM_CRA_RATE: float = 0.01
-    MINIMUM_CRA_AMOUNT: float = 200000
-
-    TAX_BANDS = [
-        (300000, 0.07),
-        (300000, 0.11),
-        (500000, 0.15),
-        (500000, 0.19),
-        (1600000, 0.21),
-        (float('inf'), 0.24)
-    ]
-
-    def __init__(self, components: Dict[str, float]):
-        self.validate_components(components)
+    def __init__(self, components):
         self.components = components
-
-    @staticmethod
-    def validate_components(components: Dict[str, float]) -> None:
-        """Validate that component percentages sum to 100%."""
-        if not isinstance(components, dict):
-            raise ValueError("Components must be a dictionary")
-        if sum(components.values()) != 100:
-            raise ValueError("Component percentages must sum to 100%")
 
     def calculate_monthly_gross(self, annual_gross):
         """Calculate monthly gross from annual gross."""
         return round(annual_gross / 12, 2)
 
-    def calculate_working_days_ratio(self, start_date: str, end_date: str) -> float:
+    def calculate_working_days_ratio(self, start_date, end_date):
         """Calculate the ratio of weekdays worked in the month."""
-        try:
-            start = pd.to_datetime(start_date)
-            end = pd.to_datetime(end_date)
+        start = pd.to_datetime(start_date)
+        end = pd.to_datetime(end_date)
 
-            if start > end:
-                raise ValueError("Start date must be before end date")
+        # Get the month range
+        month_start = pd.Timestamp(end.year, end.month, 1)
+        month_end = month_start + pd.offsets.MonthEnd(1)
 
-            # Get the month range
-            month_start = pd.Timestamp(end.year, end.month, 1)
-            month_end = month_start + pd.offsets.MonthEnd(1)
+        # Create date ranges for worked days and total month days
+        worked_days_range = pd.date_range(start=start, end=end)
+        month_days_range = pd.date_range(start=month_start, end=month_end)
 
-            # Optimize by using business day count
-            worked_weekdays = len(pd.bdate_range(start, end))
-            total_weekdays = len(pd.bdate_range(month_start, month_end))
+        # Count weekdays (Monday = 0, Sunday = 6)
+        worked_weekdays = len([d for d in worked_days_range if d.weekday() < 5])
+        total_weekdays = len([d for d in month_days_range if d.weekday() < 5])
 
-            return round(worked_weekdays / total_weekdays, 2)
-        except Exception as e:
-            raise ValueError(f"Error calculating working days ratio: {str(e)}")
+        return round(worked_weekdays / total_weekdays, 2)
 
     def calculate_components(self, monthly_gross, working_days_ratio=1):
         """Calculate individual salary components."""
@@ -81,30 +36,28 @@ class SalaryCalculator:
             for component, percentage in self.components.items()
         }
 
-    def calculate_pension(self, basic: float, transport: float, housing: float, 
-                         contract_type: str, monthly_gross: float, 
-                         voluntary_pension: float = 0) -> PensionDetails:
+    def calculate_pension(self, basic, transport, housing, contract_type, monthly_gross, voluntary_pension=0):
         """Calculate pension contributions after proration."""
-        if not isinstance(contract_type, str):
-            raise ValueError("Contract type must be a string")
-
-        if contract_type.strip().upper() == 'CONTRACT' or monthly_gross < self.MINIMUM_PENSION_SALARY:
-            return PensionDetails(0.00, 0.00, 0.00, 0.00)
-
-        try:
-            pensionable_base = basic + transport + housing
-            employee_pension = round(self.EMPLOYEE_PENSION_RATE * pensionable_base, 2)
-            employer_pension = round(self.EMPLOYER_PENSION_RATE * pensionable_base, 2)
-            voluntary = round(voluntary_pension, 2)
-
-            return PensionDetails(
-                employee_pension=employee_pension,
-                employer_pension=employer_pension,
-                voluntary_pension=voluntary,
-                total_pension=employee_pension + employer_pension + voluntary
-            )
-        except Exception as e:
-            raise ValueError(f"Error calculating pension: {str(e)}")
+        if contract_type.strip().upper() == 'CONTRACT' or monthly_gross < 30000:
+            return {
+                'employee_pension': 0.00,
+                'employer_pension': 0.00,
+                'voluntary_pension': 0.00,
+                'total_pension': 0.00
+            }
+        
+        pensionable_base = basic + transport + housing
+        employee_pension = round(0.08 * pensionable_base, 2)  # Fixed 8%
+        employer_pension = round(0.10 * pensionable_base, 2)  # Fixed 10%
+        voluntary = round(voluntary_pension, 2)
+        total_pension = employee_pension + employer_pension + voluntary
+        
+        return {
+            'employee_pension': employee_pension,
+            'employer_pension': employer_pension,
+            'voluntary_pension': voluntary,
+            'total_pension': total_pension
+        }
 
     def calculate_cra(self, gross_pay, pension):
         """Calculate Consolidated Relief Allowance (CRA)."""
@@ -112,16 +65,23 @@ class SalaryCalculator:
         gross_after_pension = gross_pay - pension
 
         # Calculate 20% of gross after pension
-        cra_percentage = round(self.CRA_RATE * gross_after_pension, 2)
+        cra_percentage = round(0.2 * gross_after_pension, 2)
 
         # Calculate 1% of gross after pension and compare with monthly 200,000/12
-        minimum_relief = round(max(self.MINIMUM_CRA_RATE * gross_after_pension, self.MINIMUM_CRA_AMOUNT / 12), 2)
+        minimum_relief = round(max(0.01 * gross_after_pension, 200000 / 12), 2)
 
         return round(cra_percentage + minimum_relief, 2)
 
     def calculate_paye(self, taxable_pay):
         """Calculate PAYE tax using progressive tax bands."""
-        tax_bands = self.TAX_BANDS
+        tax_bands = [
+            (300000, 0.07),
+            (300000, 0.11),
+            (500000, 0.15),
+            (500000, 0.19),
+            (1600000, 0.21),
+            (float('inf'), 0.24)
+        ]
 
         annual_taxable = taxable_pay * 12
         total_tax = 0
@@ -163,9 +123,9 @@ class SalaryCalculator:
         )
 
         # Calculate adjusted gross income for CRA
-        statutory_deductions = pension_details.employee_pension + pension_details.voluntary_pension
+        statutory_deductions = pension_details['employee_pension'] + pension_details['voluntary_pension']
         adjusted_gross = prorated_monthly_gross - statutory_deductions
-
+        
         # Calculate CRA using adjusted gross income
         cra = self.calculate_cra(adjusted_gross, 0)  # Pension already deducted from gross
 
@@ -178,15 +138,15 @@ class SalaryCalculator:
         # Calculate total deductions and net pay
         total_deductions = round(
             paye_tax + 
-            pension_details.employee_pension + 
-            pension_details.voluntary_pension + 
+            pension_details['employee_pension'] + 
+            pension_details['voluntary_pension'] + 
             other_deductions, 2
         )
         net_pay = round(prorated_monthly_gross - total_deductions + reimbursements, 2)
 
         # Calculate total tax relief (sum of all tax-deductible amounts)
-        total_tax_relief = round(cra + pension_details.employee_pension + pension_details.voluntary_pension, 2)
-
+        total_tax_relief = round(cra + pension_details['employee_pension'] + pension_details['voluntary_pension'], 2)
+        
         ordered_result = {
             'Account Number': row['Account Number'],
             'STAFF ID': row['STAFF ID'],
@@ -208,9 +168,9 @@ class SalaryCalculator:
             'COMP_MEAL': components['MEAL'],
             'COMP_CLOTHING': components['CLOTHING'],
             'CRA': cra,
-            'MANDATORY_PENSION': pension_details.employee_pension,
-            'VOLUNTARY_PENSION': pension_details.voluntary_pension,
-            'EMPLOYER_PENSION': pension_details.employer_pension,
+            'MANDATORY_PENSION': pension_details['employee_pension'],
+            'VOLUNTARY_PENSION': pension_details['voluntary_pension'],
+            'EMPLOYER_PENSION': pension_details['employer_pension'],
             'TAX_RELIEF': total_tax_relief,
             'TAXABLE_PAY': taxable_pay,
             'PAYE_TAX': paye_tax,
@@ -227,4 +187,4 @@ class SalaryCalculator:
         for _, row in df.iterrows():
             results.append(self.process_employee(row.to_dict()))
         return pd.DataFrame(results)
-
+    
