@@ -117,16 +117,11 @@ def main():
             col1, col2 = st.columns(2)
 
             with col1:
-                account_number = st.text_input("Account Number", key="single_account")
-                staff_id = st.text_input("Staff ID", key="single_staff_id")
-                email = st.text_input("Email", key="single_email")
-                name = st.text_input("Name", key="single_name")
-                department = st.text_input("Department", key="single_department")
-
-            with col2:
                 job_title = st.text_input("Job Title", key="single_job")
                 annual_gross = st.number_input("Annual Gross Pay", min_value=0.0, value=0.0, key="single_gross")
                 contract_type = st.selectbox("Contract Type", ["Full Time", "Contract"], key="single_contract")
+
+            with col2:
                 start_date = st.date_input("Start Date", key="single_start")
                 end_date = st.date_input("End Date", key="single_end")
 
@@ -141,13 +136,13 @@ def main():
             submitted = st.form_submit_button("Calculate Salary")
 
             if submitted:
-                # Create a single-row DataFrame
+                # Create a single-row DataFrame with empty values for optional fields
                 single_employee_data = pd.DataFrame([{
-                    'Account Number': account_number,
-                    'STAFF ID': staff_id,
-                    'Email': email,
-                    'NAME': name,
-                    'DEPARTMENT': department,
+                    'Account Number': '',
+                    'STAFF ID': '',
+                    'Email': '',
+                    'NAME': '',
+                    'DEPARTMENT': '',
                     'JOB TITLE': job_title,
                     'ANNUAL GROSS PAY': annual_gross,
                     'Contract Type': contract_type,
