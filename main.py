@@ -4,7 +4,7 @@ import streamlit as st
 st.set_page_config(page_title="Nigerian Salary Calculator", page_icon="💰", layout="wide")
 
 # Check if the request is for ads.txt
-path = st.experimental_get_query_params().get("path", [""])[0]
+path = st.query_params.get("path", [""])[0]
 if path == "ads.txt":
     st.write("google.com, pub-4067343505079138, DIRECT, f08c47fec0942fa0")
     st.stop()
