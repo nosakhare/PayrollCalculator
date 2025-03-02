@@ -1,0 +1,158 @@
+# Nigerian Salary Calculator - Copy Improvement Guide
+
+This document outlines all text changes needed for the Professional Salary Calculation System app to make it more user-friendly, clear, and engaging. The changes are organized by screen section for easy implementation.
+
+## Global Changes (Apply Throughout)
+
+- Replace "Professional Salary Calculation System" → "Simple Salary Calculator for Nigerian Employees"
+- Replace "How to Use" → "Quick Guide"
+- Replace all instances of "Click" → "Tap"
+- Replace all instances of "Configure" → "Set"
+- Add a short, friendly welcome message at the top of each main screen
+
+## Navigation Tabs
+
+- "Single Employee" → "One Employee"
+- "Bulk Upload" → "Multiple Employees"
+
+## Single Employee Screen
+
+### Header
+- Current: "Single Employee Calculation"
+- New: "Calculate One Employee's Salary"
+
+### Form Field Labels
+- "Annual Gross Pay" → "Yearly Salary (₦)"
+- "Contract Type" → "Employment Type"
+- "Start Date" → "Start Date"
+- "End Date" → "End Date"
+- "Reimbursements" → "Extra Allowances (₦)"
+- "Other Deductions" → "Additional Deductions (₦)"
+- "Voluntary Pension" → "Extra Pension Contribution (₦)"
+
+### Button Text
+- "Calculate Salary" → "Show Me the Results"
+
+### Instructions Section
+- Current: "Single Employee Method:"
+- New: "How to Calculate One Salary:"
+
+- Current list:
+  1. Configure salary component percentages in the sidebar
+  2. Fill in the employee details in the form
+  3. Click 'Calculate Salary' to see the results
+
+- New list:
+  1. Set your salary breakdown percentages in the side panel
+  2. Fill in the employee information above
+  3. Tap "Show Me the Results" to see the breakdown
+
+### Required Fields Section
+- Current: "Required Fields:"
+- New: "Information You'll Need:"
+
+- Keep the list items the same but add friendly descriptions:
+  - "Account Number" → "Account Number (for payroll reference)"
+  - "Staff ID" → "Staff ID (employee identifier)"
+  - "Email" → "Email (for sending pay slips)"
+  - "Name" → "Name (employee's full name)"
+  - "Department" → "Department (team or unit)"
+  - "Annual Gross Pay" → "Yearly Salary (total annual pay)"
+  - "Contract Type" → "Employment Type (full-time or contract)"
+  - "Start Date" → "Start Date (when employment began)"
+  - "End Date" → "End Date (if applicable)"
+
+### Optional Fields Section
+- Current: "Optional Fields:"
+- New: "Additional Information (if applicable):"
+
+- Update descriptions:
+  - "Reimbursements (additional payments/allowances)" → "Extra Allowances (transport, meals, etc.)"
+  - "Other Deductions (miscellaneous deductions)" → "Additional Deductions (loans, advances, etc.)"
+  - "Voluntary Pension (additional contribution)" → "Extra Pension Contribution (optional)"
+
+### Pension Rules Section
+- Current: "Pension Rules:"
+- New: "Important Pension Information:"
+
+- Rewrite each rule to be more friendly:
+  - "Only full-time employees are eligible for pension" → "Only full-time employees get pension benefits"
+  - "Pension is not calculated for salaries below ₦30,000" → "No pension deductions for salaries below ₦30,000"
+  - "Employee contribution is 8% of pensionable earnings" → "Employees contribute 8% of qualifying pay"
+  - "Employer contribution starts at 10% minimum" → "Your company contributes at least 10% for each employee"
+  - "Voluntary pension cannot exceed 1/3 of monthly salary" → "Extra pension contributions can't be more than 1/3 of monthly pay"
+  - "Pensionable earnings = Basic Salary + Housing + Transport" → "Qualifying pay includes: Basic Salary + Housing + Transport"
+
+- Note: "Contract employees are not subject to pension deductions." → "Note: Contract employees don't have pension deductions."
+
+## Bulk Upload Screen
+
+### Header
+- Current: "Upload Employee Data"
+- New: "Upload Your Team's Information"
+
+### Button Text
+- "Download CSV Template" → "Get CSV Template"
+- "Browse files" → "Select Your File"
+
+### Upload Area Text
+- Current: "Drag and drop file here"
+- New: "Drop your file here or select it above"
+- "Limit 200MB per file • CSV" → "Files up to 200MB • CSV format only"
+
+### Instructions Section
+- Current: "Bulk Upload Method:"
+- New: "How to Calculate Multiple Salaries:"
+
+- Current list:
+  1. Download the CSV template using the button above
+  2. Fill in the template with your employee data
+  3. Configure salary component percentages in the sidebar
+  4. Upload your completed CSV file
+  5. Review the data preview
+  6. Click 'Calculate Salaries' to process all employees
+  7. Download the results
+
+- New list:
+  1. Get the CSV template using the button above
+  2. Add your team's information to the file
+  3. Set salary breakdown percentages in the side panel
+  4. Upload your completed file
+  5. Check the information preview
+  6. Tap "Calculate All Salaries" to process everything
+  7. Download your complete results
+
+## Welcome Messages
+
+### Single Employee Screen
+Add at top: "Welcome! Calculate accurate salaries with proper tax and pension deductions for individual employees."
+
+### Bulk Upload Screen
+Add at top: "Need to process your entire team? Upload a CSV file to calculate multiple salaries at once."
+
+## Results Screen (after calculation)
+
+### Header
+- Current: "Salary Calculation Results"
+- New: "Your Salary Breakdown"
+
+### Button
+- "Download Results" → "Save Results"
+- "Calculate Another Salary" → "Start a New Calculation"
+
+## Sidebar Content
+
+### Header
+- Current: "Configure Salary Components"
+- New: "Customize Salary Breakdown"
+
+### Description
+Add: "Adjust how the salary is split between different components. These percentages affect tax and pension calculations."
+
+### Component Labels
+- "Basic Salary (%)" → "Basic Salary"
+- "Transport Allowance (%)" → "Transport"
+- "Housing Allowance (%)" → "Housing"
+- "Other Allowances (%)" → "Other Benefits"
+
+Add note: "Total must equal 100%. The breakdown affects tax calculations."
