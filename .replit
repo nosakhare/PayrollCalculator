@@ -8,7 +8,7 @@ deploymentTarget = "autoscale"
 run = ["sh", "-c", "streamlit run main.py --server.port 5000"]
 
 [workflows]
-runButton = "Salary Calculator"
+runButton = "Project"
 
 [[workflows.workflow]]
 name = "Project"

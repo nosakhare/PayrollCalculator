@@ -7,5 +7,8 @@ dependencies = [
     "flask>=3.1.0",
     "numpy>=2.2.2",
     "pandas>=2.2.3",
+    "pdfkit>=1.0.0",
+    "reportlab>=4.3.1",
     "streamlit>=1.41.1",
+    "weasyprint>=64.1",
 ]

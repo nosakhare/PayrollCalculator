@@ -1,4 +1,9 @@
 import streamlit as st
+import os
+from datetime import datetime, timedelta
+from salary_calculator import SalaryCalculator
+from utils import validate_percentages, generate_csv_template
+from payslip_generator import PayslipGenerator
 
 # Must be the first Streamlit command
 st.set_page_config(page_title="Nigerian Salary Calculator", page_icon="💰", layout="wide")
@@ -10,9 +15,6 @@ if path == "ads.txt":
     st.stop()
 
 import pandas as pd
-from datetime import datetime, timedelta
-from salary_calculator import SalaryCalculator
-from utils import validate_percentages, generate_csv_template
 
 def main():
     st.sidebar.image("generated-icon.png", width=100)
@@ -168,6 +170,55 @@ def main():
             # Additional info
             st.write("Note: Employer contribution to pension: ", f"₦{result['EMPLOYER_PENSION']:,.2f}")
 
+            # Button to generate payslip
+            if st.button("Generate Payslip"):
+                try:
+                    # Create employee data dictionary for payslip
+                    employee_data = {
+                        'id': 'TEMP001',  # Temporary ID for single calculation
+                        'company_info': {
+                            'name': 'Your Company Name',
+                            'address': 'Company Address',
+                            'rc_number': 'RC123456'
+                        },
+                        'name': 'Employee',
+                        'department': 'Department',
+                        'pay_period': datetime.now().strftime('%B %Y'),
+                        'salary_data': {
+                            'earnings': {
+                                'Basic Salary': result['COMP_BASIC'],
+                                'Transport': result['COMP_TRANSPORT'],
+                                'Housing': result['COMP_HOUSING'],
+                                'Utility': result['COMP_UTILITY']
+                            },
+                            'deductions': {
+                                'PAYE Tax': result['PAYE_TAX'],
+                                'Pension': result['MANDATORY_PENSION'],
+                                'Other Deductions': result['OTHER_DEDUCTIONS']
+                            },
+                            'net_pay': result['NET_PAY']
+                        }
+                    }
+
+                    # Generate payslip
+                    generator = PayslipGenerator()
+                    payslip_path = generator.generate_payslip(employee_data)
+
+                    # Read the generated PDF for download
+                    with open(payslip_path, "rb") as pdf_file:
+                        pdf_bytes = pdf_file.read()
+
+                    # Add download button
+                    st.download_button(
+                        label="Download Payslip",
+                        data=pdf_bytes,
+                        file_name=f"payslip_{datetime.now().strftime('%Y%m')}.pdf",
+                        mime="application/pdf"
+                    )
+
+                except Exception as e:
+                    st.error(f"Error generating payslip: {str(e)}")
+
             # Button to calculate another salary
             if st.button("Start a New Calculation"):
                 st.session_state.single_calculation_result = None
@@ -213,6 +264,59 @@ def main():
         if st.session_state.calculated_results is not None:
             st.subheader("Your Salary Breakdown")
             st.dataframe(st.session_state.calculated_results)
+
+            # Add bulk payslip generation button
+            if st.button("Generate All Payslips"):
+                try:
+                    generator = PayslipGenerator()
+                    payslip_dir = "payslips"
+                    os.makedirs(payslip_dir, exist_ok=True)
+
+                    # Generate payslips for all employees
+                    for index, row in st.session_state.calculated_results.iterrows():
+                        employee_data = {
+                            'id': row.get('STAFF ID', f'TEMP{index+1}'),
+                            'company_info': {
+                                'name': 'Your Company Name',
+                                'address': 'Company Address',
+                                'rc_number': 'RC123456'
+                            },
+                            'name': row.get('NAME', 'Employee'),
+                            'department': row.get('DEPARTMENT', 'Department'),
+                            'pay_period': datetime.now().strftime('%B %Y'),
+                            'salary_data': {
+                                'earnings': {
+                                    'Basic Salary': row['COMP_BASIC'],
+                                    'Transport': row['COMP_TRANSPORT'],
+                                    'Housing': row['COMP_HOUSING'],
+                                    'Utility': row['COMP_UTILITY']
+                                },
+                                'deductions': {
+                                    'PAYE Tax': row['PAYE_TAX'],
+                                    'Pension': row['MANDATORY_PENSION'],
+                                    'Other Deductions': row['OTHER_DEDUCTIONS']
+                                },
+                                'net_pay': row['NET_PAY']
+                            }
+                        }
+                        generator.generate_payslip(employee_data, payslip_dir)
+
+                    # Create ZIP file of all payslips
+                    import shutil
+                    zip_path = "payslips.zip"
+                    shutil.make_archive("payslips", 'zip', payslip_dir)
+
+                    # Offer ZIP download
+                    with open(zip_path, "rb") as zip_file:
+                        st.download_button(
+                            label="Download All Payslips",
+                            data=zip_file.read(),
+                            file_name="payslips.zip",
+                            mime="application/zip"
+                        )
+
+                except Exception as e:
+                    st.error(f"Error generating payslips: {str(e)}")
 
             # Download button for results
             csv_results = st.session_state.calculated_results.to_csv(index=False).encode('utf-8')
