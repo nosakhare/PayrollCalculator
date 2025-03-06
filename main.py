@@ -170,7 +170,7 @@ def main():
             # Additional info
             st.write("Note: Employer contribution to pension: ", f"₦{result['EMPLOYER_PENSION']:,.2f}")
 
-            # Company Information Form
+            # Company Information Form moved here
             st.subheader("Company Information for Payslip")
             company_name = st.text_input("Company Name", value="Your Company Name")
             company_address = st.text_area("Company Address", value="Company Address", height=100)
@@ -271,15 +271,15 @@ def main():
             st.subheader("Your Salary Breakdown")
             st.dataframe(st.session_state.calculated_results)
 
+            # Company Information Form moved here for bulk generation
+            st.subheader("Company Information for Payslips")
+            bulk_company_name = st.text_input("Company Name", value="Your Company Name", key="bulk_company_name")
+            bulk_company_address = st.text_area("Company Address", value="Company Address", height=100, key="bulk_company_address")
+            bulk_rc_number = st.text_input("RC Number", value="RC123456", key="bulk_rc_number")
+
             # Add bulk payslip generation button
             if st.button("Generate All Payslips"):
                 try:
-                    # Company Information Form for bulk generation
-                    st.subheader("Company Information for Payslips")
-                    bulk_company_name = st.text_input("Company Name", value="Your Company Name", key="bulk_company_name")
-                    bulk_company_address = st.text_area("Company Address", value="Company Address", height=100, key="bulk_company_address")
-                    bulk_rc_number = st.text_input("RC Number", value="RC123456", key="bulk_rc_number")
-
                     generator = PayslipGenerator()
                     payslip_dir = "payslips"
                     os.makedirs(payslip_dir, exist_ok=True)
