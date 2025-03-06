@@ -34,9 +34,11 @@ def main():
 
     components = {
         "BASIC": st.sidebar.number_input("Basic Salary", min_value=0.0, max_value=100.0, value=30.0, step=0.1),
-        "TRANSPORT": st.sidebar.number_input("Transport", min_value=0.0, max_value=100.0, value=30.0, step=0.1),
+        "TRANSPORT": st.sidebar.number_input("Transport", min_value=0.0, max_value=100.0, value=25.0, step=0.1),
         "HOUSING": st.sidebar.number_input("Housing", min_value=0.0, max_value=100.0, value=20.0, step=0.1),
-        "UTILITY": st.sidebar.number_input("Other Benefits", min_value=0.0, max_value=100.0, value=20.0, step=0.1)
+        "UTILITY": st.sidebar.number_input("Other Benefits", min_value=0.0, max_value=100.0, value=15.0, step=0.1),
+        "MEAL": st.sidebar.number_input("Meal Allowance", min_value=0.0, max_value=100.0, value=5.0, step=0.1),
+        "CLOTHING": st.sidebar.number_input("Clothing Allowance", min_value=0.0, max_value=100.0, value=5.0, step=0.1)
     }
 
     # Validate percentages
