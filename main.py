@@ -4,7 +4,6 @@ from datetime import datetime, timedelta
 from salary_calculator import SalaryCalculator
 from utils import validate_percentages, generate_csv_template
 from payslip_generator import PayslipGenerator
-from email_utils import EmailSender # Added import
 
 # Must be the first Streamlit command
 st.set_page_config(page_title="Nigerian Salary Calculator", page_icon="💰", layout="wide")
@@ -28,8 +27,6 @@ def main():
         st.session_state.calculated_results = None
     if 'single_calculation_result' not in st.session_state:
         st.session_state.single_calculation_result = None
-    if 'email_configured' not in st.session_state: # Added email configuration state
-        st.session_state.email_configured = False
 
     # Sidebar for component configuration
     st.sidebar.header("Customize Salary Breakdown")
@@ -54,26 +51,6 @@ def main():
     if not validate_percentages(total_percentage):
         st.sidebar.error("Total percentage must equal 100%")
         return
-
-    # Email Configuration Section in sidebar
-    st.sidebar.markdown("---")
-    st.sidebar.subheader("Email Configuration")
-
-    smtp_server = st.sidebar.text_input("SMTP Server", value="smtp.gmail.com")
-    smtp_port = st.sidebar.number_input("SMTP Port", value=587)
-    sender_email = st.sidebar.text_input("Sender Email")
-    sender_password = st.sidebar.text_input("Email Password", type="password")
-
-    if st.sidebar.button("Save Email Configuration"):
-        if sender_email and sender_password:
-            st.session_state.email_sender = EmailSender(
-                smtp_server, smtp_port, sender_email, sender_password
-            )
-            st.session_state.email_configured = True
-            st.sidebar.success("Email configuration saved!")
-        else:
-            st.sidebar.error("Please provide both email and password")
-
 
     # Create tabs for different calculation methods
     tab1, tab2 = st.tabs(["One Employee", "Multiple Employees"])
@@ -245,26 +222,6 @@ def main():
                         mime="application/pdf"
                     )
 
-                    #Added Email Functionality for single payslip
-                    if st.session_state.email_configured and st.button("Send Payslip via Email"):
-                        email = st.text_input("Recipient Email Address")
-                        if email:
-                            try:
-                                success, message = st.session_state.email_sender.send_payslip(
-                                    email,
-                                    "Employee",  # Since single calculation doesn't have name
-                                    payslip_path,
-                                    datetime.now().strftime('%B %Y')
-                                )
-                                if success:
-                                    st.success(f"Payslip sent to {email}")
-                                else:
-                                    st.error(f"Failed to send email: {message}")
-                            except Exception as e:
-                                st.error(f"Error sending email: {str(e)}")
-                        else:
-                            st.error("Please enter recipient email address")
-
                 except Exception as e:
                     st.error(f"Error generating payslip: {str(e)}")
 
@@ -369,44 +326,6 @@ def main():
                             file_name="payslips.zip",
                             mime="application/zip"
                         )
-                        #Added Email Functionality for bulk payslips
-                        if st.session_state.email_configured and st.button("Send All Payslips via Email"):
-                            try:
-                                sent_count = 0
-                                error_count = 0
-                                progress_bar = st.progress(0)
-                                status_text = st.empty()
-
-                                total_employees = len(st.session_state.calculated_results)
-
-                                for index, row in st.session_state.calculated_results.iterrows():
-                                    if not row.get('Email'):
-                                        error_count += 1
-                                        continue
-
-                                    employee_name = row.get('NAME', 'Employee')
-                                    payslip_path = f"payslips/{row.get('STAFF ID', f'TEMP{index+1}')}_{datetime.now().strftime('%Y%m')}_payslip.pdf"
-
-                                    success, message = st.session_state.email_sender.send_payslip(
-                                        row['Email'],
-                                        employee_name,
-                                        payslip_path,
-                                        datetime.now().strftime('%B %Y')
-                                    )
-
-                                    if success:
-                                        sent_count += 1
-                                    else:
-                                        error_count += 1
-
-                                    progress = (index + 1) / total_employees
-                                    progress_bar.progress(progress)
-                                    status_text.text(f"Processing: {index + 1}/{total_employees}")
-
-                                st.success(f"Sent {sent_count} payslips successfully. {error_count} failed.")
-                            except Exception as e:
-                                st.error(f"Error sending emails: {str(e)}")
-
 
                 except Exception as e:
                     st.error(f"Error generating payslips: {str(e)}")
