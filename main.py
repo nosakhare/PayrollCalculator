@@ -170,6 +170,12 @@ def main():
             # Additional info
             st.write("Note: Employer contribution to pension: ", f"₦{result['EMPLOYER_PENSION']:,.2f}")
 
+            # Company Information Form
+            st.subheader("Company Information for Payslip")
+            company_name = st.text_input("Company Name", value="Your Company Name")
+            company_address = st.text_area("Company Address", value="Company Address", height=100)
+            rc_number = st.text_input("RC Number", value="RC123456")
+
             # Button to generate payslip
             if st.button("Generate Payslip"):
                 try:
@@ -177,9 +183,9 @@ def main():
                     employee_data = {
                         'id': 'TEMP001',  # Temporary ID for single calculation
                         'company_info': {
-                            'name': 'Your Company Name',
-                            'address': 'Company Address',
-                            'rc_number': 'RC123456'
+                            'name': company_name,
+                            'address': company_address,
+                            'rc_number': rc_number
                         },
                         'name': 'Employee',
                         'department': 'Department',
@@ -268,6 +274,12 @@ def main():
             # Add bulk payslip generation button
             if st.button("Generate All Payslips"):
                 try:
+                    # Company Information Form for bulk generation
+                    st.subheader("Company Information for Payslips")
+                    bulk_company_name = st.text_input("Company Name", value="Your Company Name", key="bulk_company_name")
+                    bulk_company_address = st.text_area("Company Address", value="Company Address", height=100, key="bulk_company_address")
+                    bulk_rc_number = st.text_input("RC Number", value="RC123456", key="bulk_rc_number")
+
                     generator = PayslipGenerator()
                     payslip_dir = "payslips"
                     os.makedirs(payslip_dir, exist_ok=True)
@@ -277,9 +289,9 @@ def main():
                         employee_data = {
                             'id': row.get('STAFF ID', f'TEMP{index+1}'),
                             'company_info': {
-                                'name': 'Your Company Name',
-                                'address': 'Company Address',
-                                'rc_number': 'RC123456'
+                                'name': bulk_company_name,
+                                'address': bulk_company_address,
+                                'rc_number': bulk_rc_number
                             },
                             'name': row.get('NAME', 'Employee'),
                             'department': row.get('DEPARTMENT', 'Department'),
