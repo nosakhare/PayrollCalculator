@@ -136,16 +136,7 @@ class PayslipGenerator:
         c.drawString(1*inch, y_pos*inch, "Other Deductions")
         c.drawString(6*inch, y_pos*inch, self._format_currency(other_deductions))
 
-        # Show Total Pension Contribution
-        y_pos -= 0.3
-        employee_pension = salary_data.get('deductions', {}).get('Pension', 0)
-        employer_pension = salary_data.get('employer_pension', 0)
-        total_pension = employee_pension + employer_pension
-        c.setFont("Helvetica-Oblique", 9)
-        c.drawString(1*inch, y_pos*inch, "Total Pension Contribution (Employee + Employer)")
-        c.drawString(6*inch, y_pos*inch, self._format_currency(total_pension))
-        
-        # Reset font
+        # Reset font after employer pension section
         c.setFont("Helvetica", 10)
         
         # Total Deductions
