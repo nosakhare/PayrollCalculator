@@ -57,7 +57,12 @@ class PayslipGenerator:
         c.setFont("Helvetica", 10)
         y_pos = y_start - 0.4
 
-        for item, amount in salary_data.get('earnings', {}).items():
+        # Define the order of earnings components
+        earnings_order = ['Basic', 'Housing', 'Transport', 'Utility', 'Meal', 'Clothing']
+
+        # Draw each earning component in order
+        for item in earnings_order:
+            amount = salary_data.get('earnings', {}).get(f'{item} Salary' if item == 'Basic' else item, 0)
             c.drawString(1*inch, y_pos*inch, item)
             c.drawString(6*inch, y_pos*inch, self._format_currency(amount))
             y_pos -= 0.3
