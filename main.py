@@ -53,13 +53,13 @@ def main():
         return
 
     # Create tabs for different calculation methods
-    tab1, tab2 = st.tabs(["Multiple Employees", "One Employee"])
+    tab1, tab2 = st.tabs(["One Employee", "Multiple Employees"])
 
     with tab1:
         # Add welcome message
-        st.write("Need to process your entire team? Upload a CSV file to calculate multiple salaries at once.")
+        st.write("Welcome! Calculate accurate salaries with proper tax and pension deductions for individual employees.")
 
-        st.subheader("Upload Your Team's Information")
+        st.subheader("Calculate One Employee's Salary")
 
         # Form for single employee data
         with st.form("single_employee_form"):
@@ -235,9 +235,9 @@ def main():
 
     with tab2:
         # Add welcome message
-        st.write("Welcome! Calculate accurate salaries with proper tax and pension deductions for individual employees.")
+        st.write("Need to process your entire team? Upload a CSV file to calculate multiple salaries at once.")
 
-        st.subheader("Calculate One Employee's Salary")
+        st.subheader("Upload Your Team's Information")
 
         # Template download button
         csv_template = generate_csv_template()
