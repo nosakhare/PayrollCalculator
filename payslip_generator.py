@@ -46,7 +46,7 @@ class PayslipGenerator:
 
     def _format_currency(self, amount):
         """Format amount in Nigerian Naira"""
-        return f"₦{amount:,.2f}"
+        return f"NGN {amount:,.2f}"
 
     def _draw_salary_components(self, c, salary_data):
         """Draw earnings and deductions breakdown"""
