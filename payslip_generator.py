@@ -28,10 +28,15 @@ class PayslipGenerator:
 
         # Right side info
         y_start = 10.5
+        
+        # Use start and end dates from the data if available, otherwise use current month
+        pay_period = employee_info.get('pay_period', 
+                    f"{datetime.now().strftime('%m/01/%Y')} - {datetime.now().strftime('%m/%d/%Y')}")
+        
         right_info = [
             ("Job Description", employee_info.get('department', 'N/A')),
             ("Staff ID", employee_info.get('id', 'N/A')),
-            ("Pay Period", f"{datetime.now().strftime('%m/01/%Y')} - {datetime.now().strftime('%m/%d/%Y')}")
+            ("Pay Period", pay_period)
         ]
 
         for label, value in right_info:
@@ -62,7 +67,16 @@ class PayslipGenerator:
 
         # Draw each earning component in order
         for item in earnings_order:
-            amount = salary_data.get('earnings', {}).get(f'{item} Salary' if item == 'Basic' else item, 0)
+            # Map to the correct keys in the earnings dictionary
+            key = item
+            if item == 'Basic':
+                key = 'Basic Salary'
+            elif item == 'Meal':
+                key = 'Meal Allowance'
+            elif item == 'Clothing':
+                key = 'Clothing Allowance'
+                
+            amount = salary_data.get('earnings', {}).get(key, 0)
             c.drawString(1*inch, y_pos*inch, item)
             c.drawString(6*inch, y_pos*inch, self._format_currency(amount))
             y_pos -= 0.3
@@ -124,7 +138,9 @@ class PayslipGenerator:
         c.setFillColorRGB(0.4, 0, 0.6)  # Purple color
         c.rect(0.9*inch, (y_pos-0.2)*inch, 6.2*inch, 0.5*inch, fill=1)
         c.setFillColorRGB(1, 1, 1)  # White text
-        c.drawString(1*inch, y_pos*inch, "Salary Payout for September")
+        # Use current month name instead of hardcoded September
+        current_month = datetime.now().strftime('%B')
+        c.drawString(1*inch, y_pos*inch, f"Salary Payout for {current_month}")
         c.drawString(6*inch, y_pos*inch, self._format_currency(salary_data.get('net_pay', 0)))
 
         # Formula explanation

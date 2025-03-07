@@ -195,7 +195,9 @@ def main():
                                 'Basic Salary': result['COMP_BASIC'],
                                 'Transport': result['COMP_TRANSPORT'],
                                 'Housing': result['COMP_HOUSING'],
-                                'Utility': result['COMP_UTILITY']
+                                'Utility': result['COMP_UTILITY'],
+                                'Meal Allowance': result['COMP_MEAL'],
+                                'Clothing Allowance': result['COMP_CLOTHING']
                             },
                             'deductions': {
                                 'PAYE Tax': result['PAYE_TAX'],
@@ -301,7 +303,9 @@ def main():
                                     'Basic Salary': row['COMP_BASIC'],
                                     'Transport': row['COMP_TRANSPORT'],
                                     'Housing': row['COMP_HOUSING'],
-                                    'Utility': row['COMP_UTILITY']
+                                    'Utility': row['COMP_UTILITY'],
+                                    'Meal Allowance': row['COMP_MEAL'],
+                                    'Clothing Allowance': row['COMP_CLOTHING']
                                 },
                                 'deductions': {
                                     'PAYE Tax': row['PAYE_TAX'],
