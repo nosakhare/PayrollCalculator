@@ -28,11 +28,11 @@ class PayslipGenerator:
 
         # Right side info
         y_start = 10.5
-        
+
         # Use start and end dates from the data if available, otherwise use current month
         pay_period = employee_info.get('pay_period', 
                     f"{datetime.now().strftime('%m/01/%Y')} - {datetime.now().strftime('%m/%d/%Y')}")
-        
+
         right_info = [
             ("Job Description", employee_info.get('department', 'N/A')),
             ("Staff ID", employee_info.get('id', 'N/A')),
@@ -75,21 +75,28 @@ class PayslipGenerator:
                 key = 'Meal Allowance'
             elif item == 'Clothing':
                 key = 'Clothing Allowance'
-                
+
             amount = salary_data.get('earnings', {}).get(key, 0)
             c.drawString(1*inch, y_pos*inch, item)
             c.drawString(6*inch, y_pos*inch, self._format_currency(amount))
             y_pos -= 0.3
 
-        # No salary add-ons message
+        # Check for reimbursements
         y_pos -= 0.3
         c.setFillColorRGB(0.5, 0.5, 0.5)  # Gray color
-        c.drawString(1*inch, y_pos*inch, "No salary add-ons this month.")
+        reimbursements = salary_data.get('reimbursements', 0)
+        if reimbursements > 0:
+            c.drawString(1*inch, y_pos*inch, "Reimbursements")
+            c.drawString(6*inch, y_pos*inch, self._format_currency(reimbursements))
+        else:
+            c.drawString(1*inch, y_pos*inch, "No salary add-ons this month.")
         c.setFillColorRGB(0, 0, 0)  # Reset to black
 
         # Total Earnings
         y_pos -= 0.4
         total_earnings = sum(salary_data.get('earnings', {}).values())
+        if reimbursements > 0:
+            total_earnings += reimbursements
         c.setFont("Helvetica-Bold", 10)
         c.drawString(1*inch, y_pos*inch, "Total Earnings (Gross)")
         c.drawString(6*inch, y_pos*inch, self._format_currency(total_earnings))
@@ -103,13 +110,13 @@ class PayslipGenerator:
         # Draw statutory deductions
         c.setFont("Helvetica", 10)
         y_pos -= 0.4
-        
+
         # Handle pension display differently to show breakdown
         pension_amount = salary_data.get('deductions', {}).get('Pension', 0)
         c.drawString(1*inch, y_pos*inch, "Pension (Employee 8%)")
         c.drawString(6*inch, y_pos*inch, self._format_currency(pension_amount))
         y_pos -= 0.3
-        
+
         # Add employer pension contribution (not deducted from employee salary)
         employer_pension = salary_data.get('employer_pension', 0)
         c.setFillColorRGB(0.5, 0.5, 0.5)  # Gray color
@@ -117,7 +124,7 @@ class PayslipGenerator:
         c.drawString(6*inch, y_pos*inch, self._format_currency(employer_pension))
         c.setFillColorRGB(0, 0, 0)  # Reset to black
         y_pos -= 0.3
-        
+
         # Show PAYE Tax
         c.drawString(1*inch, y_pos*inch, "PAYE (Tax)")
         c.drawString(6*inch, y_pos*inch, self._format_currency(salary_data.get('deductions', {}).get('PAYE Tax', 0)))
@@ -138,7 +145,7 @@ class PayslipGenerator:
 
         # Reset font after employer pension section
         c.setFont("Helvetica", 10)
-        
+
         # Total Deductions
         y_pos -= 0.5
         total_deductions = sum(salary_data.get('deductions', {}).values())
