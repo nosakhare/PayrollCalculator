@@ -103,15 +103,25 @@ class PayslipGenerator:
         # Draw statutory deductions
         c.setFont("Helvetica", 10)
         y_pos -= 0.4
-        statutory_deductions = {
-            'Pension': salary_data.get('deductions', {}).get('Pension', 0),
-            'PAYE (Tax)': salary_data.get('deductions', {}).get('PAYE Tax', 0)
-        }
-
-        for item, amount in statutory_deductions.items():
-            c.drawString(1*inch, y_pos*inch, item)
-            c.drawString(6*inch, y_pos*inch, self._format_currency(amount))
-            y_pos -= 0.3
+        
+        # Handle pension display differently to show breakdown
+        pension_amount = salary_data.get('deductions', {}).get('Pension', 0)
+        c.drawString(1*inch, y_pos*inch, "Pension (Employee 8%)")
+        c.drawString(6*inch, y_pos*inch, self._format_currency(pension_amount))
+        y_pos -= 0.3
+        
+        # Add employer pension contribution (not deducted from employee salary)
+        employer_pension = salary_data.get('employer_pension', 0)
+        c.setFillColorRGB(0.5, 0.5, 0.5)  # Gray color
+        c.drawString(1*inch, y_pos*inch, "Pension (Employer 10%) - Not deducted")
+        c.drawString(6*inch, y_pos*inch, self._format_currency(employer_pension))
+        c.setFillColorRGB(0, 0, 0)  # Reset to black
+        y_pos -= 0.3
+        
+        # Show PAYE Tax
+        c.drawString(1*inch, y_pos*inch, "PAYE (Tax)")
+        c.drawString(6*inch, y_pos*inch, self._format_currency(salary_data.get('deductions', {}).get('PAYE Tax', 0)))
+        y_pos -= 0.3
 
         # Salary Deduction section
         y_pos -= 0.4
@@ -126,6 +136,18 @@ class PayslipGenerator:
         c.drawString(1*inch, y_pos*inch, "Other Deductions")
         c.drawString(6*inch, y_pos*inch, self._format_currency(other_deductions))
 
+        # Show Total Pension Contribution
+        y_pos -= 0.3
+        employee_pension = salary_data.get('deductions', {}).get('Pension', 0)
+        employer_pension = salary_data.get('employer_pension', 0)
+        total_pension = employee_pension + employer_pension
+        c.setFont("Helvetica-Oblique", 9)
+        c.drawString(1*inch, y_pos*inch, "Total Pension Contribution (Employee + Employer)")
+        c.drawString(6*inch, y_pos*inch, self._format_currency(total_pension))
+        
+        # Reset font
+        c.setFont("Helvetica", 10)
+        
         # Total Deductions
         y_pos -= 0.5
         total_deductions = sum(salary_data.get('deductions', {}).values())

@@ -204,6 +204,7 @@ def main():
                                 'Pension': result['MANDATORY_PENSION'],
                                 'Other Deductions': result['OTHER_DEDUCTIONS']
                             },
+                            'employer_pension': result['EMPLOYER_PENSION'],
                             'net_pay': result['NET_PAY']
                         }
                     }
@@ -312,6 +313,7 @@ def main():
                                     'Pension': row['MANDATORY_PENSION'],
                                     'Other Deductions': row['OTHER_DEDUCTIONS']
                                 },
+                                'employer_pension': row['EMPLOYER_PENSION'],
                                 'net_pay': row['NET_PAY']
                             }
                         }
