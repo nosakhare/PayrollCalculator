@@ -801,14 +801,14 @@ def handle_payroll_calculation(employees, period_name):
                 format="₦%d"
             ),
             'Net Pay': st.column_config.NumberColumn(
-                `Net Pay',
+                'Net Pay',
                 help='Final take-home pay',
                 min_value=0,
                 format="₦%d"
             )
-        }
-    )
+        }    )
 
+    # Action buttons
     col1, col2, col3 = st.columns([1, 1, 1])
 
     with col1:
@@ -843,7 +843,7 @@ def handle_payroll_calculation(employees, period_name):
                                 'clothing': row['Clothing'],
                                 'pension_employee': row['Pension'],
                                 'pension_voluntary': row['Additional Pension'],
-                                'pension_employer': row['Pension'] * 1.25,  # 10% vs 8%
+                                'pension_employer': row['Pension'] * 1.25,
                                 'paye_tax': row['PAYE'],
                                 'other_deductions': row['Other Deductions'],
                                 'reimbursements': 0
