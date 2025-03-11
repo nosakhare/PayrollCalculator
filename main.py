@@ -14,33 +14,6 @@ st.set_page_config(page_title="Nigerian Salary Calculator", page_icon="💰", la
 # Initialize database
 init_db()
 
-# Add custom CSS for horizontal menu
-st.markdown("""
-<style>
-.horizontal-menu {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    padding: 10px;
-    background-color: #f0f2f6;
-    border-radius: 10px;
-    margin-bottom: 20px;
-}
-
-.menu-item {
-    padding: 10px 20px;
-    border-radius: 5px;
-    text-decoration: none;
-    color: black;
-    cursor: pointer;
-}
-
-.selected {
-    background-color: #2196F3;
-    color: white !important;
-}
-</style>
-""", unsafe_allow_html=True)
 
 def employee_management_page():
     st.title("Employee Management")
@@ -178,6 +151,7 @@ def employee_management_page():
 
             except Exception as e:
                 st.error(f"Error processing file: {str(e)}")
+
 
 def salary_calculator_page():
     # Check if the request is for ads.txt
@@ -569,12 +543,11 @@ def payroll_processing_page():
 
     # Get all employees
     employees = get_all_employees()
-
     if not employees:
         st.warning("No employees found. Please add employees in the Employee Management section first.")
         return
 
-    # Initialize session state for storing calculated payroll
+    # Initialize session state
     if 'payroll_data' not in st.session_state:
         st.session_state.payroll_data = None
     if 'total_payroll' not in st.session_state:
@@ -582,7 +555,6 @@ def payroll_processing_page():
     if 'review_data' not in st.session_state:
         st.session_state.review_data = None
 
-    # Create tabs for different payroll operations
     tab1, tab2 = st.tabs(["Process Payroll", "Payroll History"])
 
     with tab1:
@@ -591,7 +563,6 @@ def payroll_processing_page():
         # Add payroll period selection
         col1, col2 = st.columns([2, 1])
         with col1:
-            # Get current month and year
             today = date.today()
             current_month = today.strftime('%B %Y')
             period_name = st.text_input("Payroll Period", value=current_month)
@@ -599,352 +570,374 @@ def payroll_processing_page():
         with col2:
             st.metric("Total Payroll", f"₦{st.session_state.total_payroll:,.2f}")
 
-        # Review Step
+        # Handle payroll processing actions
         if st.button("Review Payroll Data") or st.session_state.review_data is not None:
-            if st.session_state.review_data is None:
-                # Create review records for all employees
-                review_records = []
-
-                for employee in employees:
-                    # Create record with only editable input fields
-                    record = {
-                        'Employee': employee['full_name'],
-                        'Staff ID': employee['staff_id'],
-                        'Department': employee['department'],
-                        'Annual Gross Pay': employee['annual_gross_pay'],
-                        'Contract Type': employee['contract_type'],
-                        'Reimbursements': employee['reimbursements'],
-                        'Other Deductions': employee['other_deductions'],
-                        'Voluntary Pension': employee['voluntary_pension'],
-                        '_employee_id': employee['id']
-                    }
-                    review_records.append(record)
-
-                # Store in session state
-                st.session_state.review_data = pd.DataFrame(review_records)
-
-            # Display editable review table
-            edited_df = st.data_editor(
-                st.session_state.review_data.drop(['_employee_id'], axis=1),
-                hide_index=True,
-                use_container_width=True,
-                num_rows="fixed",
-                disabled=('Employee', 'Staff ID', 'Department'),
-                column_config={
-                    'Annual Gross Pay': st.column_config.NumberColumn(
-                        'Annual Gross Pay',
-                        help='Total annual salary',
-                        min_value=0,
-                        format="₦%d"
-                    ),
-                    'Contract Type': st.column_config.SelectboxColumn(
-                        'Contract Type',
-                        help='Employment type',
-                        options=['Full Time', 'Contract']
-                    ),
-                    'Reimbursements': st.column_config.NumberColumn(
-                        'Reimbursements',
-                        help='Additional allowances',
-                        min_value=0,
-                        format="₦%d"
-                    ),
-                    'Other Deductions': st.column_config.NumberColumn(
-                        'Other Deductions',
-                        help='Additional deductions',
-                        min_value=0,
-                        format="₦%d"
-                    ),
-                    'Voluntary Pension': st.column_config.NumberColumn(
-                        'Voluntary Pension',
-                        help='Additional pension contribution',
-                        min_value=0,
-                        format="₦%d"
-                    )
-                }
-            )
-
-            # Add action buttons for review
-            col1, col2, col3 = st.columns([1, 1, 1])
-
-            with col1:
-                if st.button("Calculate Payroll"):
-                    calculator = SalaryCalculator({
-                        "BASIC": 30.0,
-                        "TRANSPORT": 25.0,
-                        "HOUSING": 20.0,
-                        "UTILITY": 15.0,
-                        "MEAL": 5.0,
-                        "CLOTHING": 5.0
-                    })
-
-                    # Process all employees with reviewed data
-                    payroll_records = []
-                    total_payroll = 0
-
-                    for _, row in edited_df.iterrows():
-                        # Get employee ID from review data
-                        employee_id = st.session_state.review_data.loc[
-                            st.session_state.review_data['Employee'] == row['Employee'],
-                            '_employee_id'
-                        ].iloc[0]
-
-                        # Get employee base data
-                        employee = next(emp for emp in employees if emp['id'] == employee_id)
-
-                        # Create DataFrame for salary calculation with reviewed values
-                        emp_df = pd.DataFrame([{
-                            'Account Number': employee['account_number'],
-                            'STAFF ID': row['Staff ID'],
-                            'Email': employee['email'],
-                            'NAME': row['Employee'],
-                            'DEPARTMENT': row['Department'],
-                            'JOB TITLE': employee['job_title'],
-                            'ANNUAL GROSS PAY': row['Annual Gross Pay'],
-                            'Contract Type': row['Contract Type'],
-                            'START DATE': employee['start_date'],
-                            'END DATE': employee['end_date'] or datetime.now().strftime('%Y-%m-%d'),
-                            'Reimbursements': row['Reimbursements'],
-                            'Other Deductions': row['Other Deductions'],
-                            'VOLUNTARY_PENSION': row['Voluntary Pension']
-                        }])
-
-                        # Calculate salary
-                        result = calculator.process_dataframe(emp_df).iloc[0]
-
-                        # Create final record
-                        record = {
-                            'Employee': row['Employee'],
-                            'Staff ID': row['Staff ID'],
-                            'Department': row['Department'],
-                            'Annual Salary': row['Annual Gross Pay'],
-                            'Basic': result['COMP_BASIC'],
-                            'Housing': result['COMP_HOUSING'],
-                            'Transport': result['COMP_TRANSPORT'],
-                            'Utility': result['COMP_UTILITY'],
-                            'Meal': result['COMP_MEAL'],
-                            'Clothing': result['COMP_CLOTHING'],
-                            'Gross Pay': result['PRORATED_MONTHLY_GROSS'],
-                            'Pension': result['MANDATORY_PENSION'],
-                            'Additional Pension': result['VOLUNTARY_PENSION'],
-                            'PAYE': result['PAYE_TAX'],
-                            'Other Deductions': result['OTHER_DEDUCTIONS'],
-                            'Net Pay': result['NET_PAY'],
-                            '_employee_id': employee_id
-                        }
-
-                        payroll_records.append(record)
-                        total_payroll += record['Net Pay']
-
-                    # Store calculated results
-                    st.session_state.payroll_data = pd.DataFrame(payroll_records)
-                    st.session_state.total_payroll = total_payroll
-                    # Clear review data
-                    st.session_state.review_data = None
-                    # Rerun to show calculated results
-                    st.rerun()
-
-            with col2:
-                if st.button("Save Changes"):
-                    # Update review data with edited values
-                    st.session_state.review_data.update(edited_df)
-                    st.success("Changes saved!")
-
-            with col3:
-                if st.button("Start Over"):
-                    st.session_state.review_data = None
-                    st.session_state.payroll_data = None
-                    st.session_state.total_payroll = 0
-                    st.rerun()
-
-        # Show calculated results if available
+            handle_payroll_review(employees)
         elif st.session_state.payroll_data is not None:
-            # Display calculated payroll table
-            edited_df = st.data_editor(
-                st.session_state.payroll_data.drop(['_employee_id'], axis=1),
-                hide_index=True,
-                use_container_width=True,
-                num_rows="fixed",
-                disabled=('Employee', 'Staff ID', 'Department', 'Annual Salary'),
-                column_config={
-                    'Basic': st.column_config.NumberColumn(
-                        'Basic',
-                        help='Basic salary component',
-                        min_value=0,
-                        format="₦%d"
-                    ),
-                    'Housing': st.column_config.NumberColumn(
-                        'Housing',
-                        help='Housing allowance',
-                        min_value=0,
-                        format="₦%d"
-                    ),
-                    'Transport': st.column_config.NumberColumn(
-                        'Transport',
-                        help='Transport allowance',
-                        min_value=0,
-                        format="₦%d"
-                    ),
-                    'Utility': st.column_config.NumberColumn(
-                        'Utility',
-                        help='Utility allowance',
-                        min_value=0,
-                        format="₦%d"
-                    ),
-                    'Meal': st.column_config.NumberColumn(
-                        'Meal',
-                        help='Meal allowance',
-                        min_value=0,
-                        format="₦%d"
-                    ),
-                    'Clothing': st.column_config.NumberColumn(
-                        'Clothing',
-                        help='Clothing allowance',
-                        min_value=0,
-                        format="₦%d"
-                    ),
-                    'Gross Pay': st.column_config.NumberColumn(
-                        'Gross Pay',
-                        help='Total gross pay',
-                        min_value=0,
-                        format="₦%d"
-                    ),
-                    'Pension': st.column_config.NumberColumn(
-                        'Pension',
-                                                help='Mandatory pension deduction',
-                        min_value=0,
-                        format="₦%d"
-                    ),
-                    'Additional Pension': st.column_config.NumberColumn(
-                        'Additional Pension',
-                        help='Voluntary pension contribution',
-                        min_value=0,
-                        format="₦%d"
-                    ),
-                    'PAYE': st.column_config.NumberColumn(
-                        'PAYE',
-                        help='PAYE tax deduction',
-                        min_value=0,
-                        format="₦%d"
-                    ),
-                    'Other Deductions': st.column_config.NumberColumn(
-                        'Other Deductions',
-                        help='Additional deductions',
-                        min_value=0,
-                        format="₦%d"
-                    ),
-                    'Net Pay': st.column_config.NumberColumn(
-                        'Net Pay',
-                        help='Final take-home pay',
-                        min_value=0,
-                        format="₦%d"
-                    ),
-                }
-            )
-
-            # Add action buttons for calculated results
-            col1, col2, col3 = st.columns([1, 1, 1])
-
-            with col1:
-                if st.button("Submit Payroll"):
-                    # Create new payroll period
-                    success, message = create_payroll_period(
-                        period_name,
-                        datetime.now().strftime('%Y-%m-%d'),
-                        datetime.now().strftime('%Y-%m-%d')
-                    )
-
-                    if success:
-                        # Get period ID
-                        active_period = get_active_payroll_period()
-                        if active_period:
-                            success, run_id = create_payroll_run(active_period['id'])
-
-                            if success:
-                                # Save each employee's payroll details
-                                for _, row in edited_df.iterrows():
-                                    employee_id = st.session_state.payroll_data.loc[
-                                        st.session_state.payroll_data['Employee'] == row['Employee'],
-                                        '_employee_id'
-                                    ].iloc[0]
-
-                                    payroll_details = {
-                                        'employee_id': employee_id,
-                                        'gross_pay': row['Gross Pay'],
-                                        'net_pay': row['Net Pay'],
-                                        'basic_salary': row['Basic'],
-                                        'housing': row['Housing'],
-                                        'transport': row['Transport'],
-                                        'utility': row['Utility'],
-                                        'meal': row['Meal'],
-                                        'clothing': row['Clothing'],
-                                        'pension_employee': row['Pension'],
-                                        'pension_voluntary': row['Additional Pension'],
-                                        'pension_employer': row['Pension'] * 1.25,  # 10% vs 8%
-                                        'paye_tax': row['PAYE'],
-                                        'other_deductions': row['Other Deductions'],
-                                        'reimbursements': 0
-                                    }
-                                    save_payroll_details(run_id, payroll_details)
-
-                                # Update run status
-                                update_payroll_run_status(run_id, 'pending_approval')
-                                st.success("Payroll submitted for approval!")
-
-                                # Clear session state
-                                st.session_state.payroll_data = None
-                                st.session_state.total_payroll = 0
-                            else:
-                                st.error(f"Failed to create payroll run: {run_id}")
-                        else:
-                            st.error("Failed to get active payroll period")
-                    else:
-                        st.error(f"Failed to create payroll period: {message}")
-
-            with col2:
-                if st.button("Recalculate"):
-                    # Clear payroll data to trigger recalculation
-                    st.session_state.payroll_data = None
-                    st.rerun()
-
-            with col3:
-                if st.button("Start Over"):
-                    st.session_state.payroll_data = None
-                    st.session_state.total_payroll = 0
-                    st.rerun()
+            handle_payroll_calculation(employees, period_name)
 
     with tab2:
         st.subheader("Payroll History")
         st.info("Payroll history will be implemented in the next phase.")
 
-def main():
-    # Create horizontal menu
-    menu_items = ["Salary Calculator", "Employee Management", "Payroll Processing"]
 
-    # Initialize session state for current page if not exists
+def handle_payroll_review(employees):
+    if st.session_state.review_data is None:
+        review_records = []
+        for employee in employees:
+            record = {
+                'Employee': employee['full_name'],
+                'Staff ID': employee['staff_id'],
+                'Department': employee['department'],
+                'Annual Gross Pay': employee['annual_gross_pay'],
+                'Contract Type': employee['contract_type'],
+                'Reimbursements': employee['reimbursements'],
+                'Other Deductions': employee['other_deductions'],
+                'Voluntary Pension': employee['voluntary_pension'],
+                '_employee_id': employee['id']
+            }
+            review_records.append(record)
+        st.session_state.review_data = pd.DataFrame(review_records)
+
+    edited_df = st.data_editor(
+        st.session_state.review_data.drop(['_employee_id'], axis=1),
+        hide_index=True,
+        use_container_width=True,
+        num_rows="fixed",
+        disabled=('Employee', 'Staff ID', 'Department'),
+        column_config={
+            'Annual Gross Pay': st.column_config.NumberColumn(
+                'Annual Gross Pay',
+                help='Total annual salary',
+                min_value=0,
+                format="₦%d"
+            ),
+            'Contract Type': st.column_config.SelectboxColumn(
+                'Contract Type',
+                help='Employment type',
+                options=['Full Time', 'Contract']
+            ),
+            'Reimbursements': st.column_config.NumberColumn(
+                'Reimbursements',
+                help='Additional allowances',
+                min_value=0,
+                format="₦%d"
+            ),
+            'Other Deductions': st.column_config.NumberColumn(
+                'Other Deductions',
+                help='Additional deductions',
+                min_value=0,
+                format="₦%d"
+            ),
+            'Voluntary Pension': st.column_config.NumberColumn(
+                'Voluntary Pension',
+                help='Additional pension contribution',
+                min_value=0,
+                format="₦%d"
+            )
+        }
+    )
+
+    # Add action buttons for review
+    col1, col2, col3 = st.columns([1, 1, 1])
+
+    with col1:
+        if st.button("Calculate Payroll"):
+            process_reviewed_data(edited_df, employees)
+
+    with col2:
+        if st.button("Save Changes"):
+            st.session_state.review_data.update(edited_df)
+            st.success("Changes saved!")
+
+    with col3:
+        if st.button("Start Over"):
+            st.session_state.review_data = None
+            st.session_state.payroll_data = None
+            st.session_state.total_payroll = 0
+            st.rerun()
+
+
+def process_reviewed_data(edited_df, employees):
+    calculator = SalaryCalculator({
+        "BASIC": 30.0,
+        "TRANSPORT": 25.0,
+        "HOUSING": 20.0,
+        "UTILITY": 15.0,
+        "MEAL": 5.0,
+        "CLOTHING": 5.0
+    })
+
+    payroll_records = []
+    total_payroll = 0
+
+    for _, row in edited_df.iterrows():
+        employee_id = st.session_state.review_data.loc[
+            st.session_state.review_data['Employee'] == row['Employee'],
+            '_employee_id'
+        ].iloc[0]
+
+        employee = next(emp for emp in employees if emp['id'] == employee_id)
+
+        emp_df = pd.DataFrame([{
+            'Account Number': employee['account_number'],
+            'STAFF ID': row['Staff ID'],
+            'Email': employee['email'],
+            'NAME': row['Employee'],
+            'DEPARTMENT': row['Department'],
+            'JOB TITLE': employee['job_title'],
+            'ANNUAL GROSS PAY': row['Annual Gross Pay'],
+            'Contract Type': row['Contract Type'],
+            'START DATE': employee['start_date'],
+            'END DATE': employee['end_date'] or datetime.now().strftime('%Y-%m-%d'),
+            'Reimbursements': row['Reimbursements'],
+            'Other Deductions': row['Other Deductions'],
+            'VOLUNTARY_PENSION': row['Voluntary Pension']
+        }])
+
+        result = calculator.process_dataframe(emp_df).iloc[0]
+
+        record = {
+            'Employee': row['Employee'],
+            'Staff ID': row['Staff ID'],
+            'Department': row['Department'],
+            'Annual Salary': row['Annual Gross Pay'],
+            'Basic': result['COMP_BASIC'],
+            'Housing': result['COMP_HOUSING'],
+            'Transport': result['COMP_TRANSPORT'],
+            'Utility': result['COMP_UTILITY'],
+            'Meal': result['COMP_MEAL'],
+            'Clothing': result['COMP_CLOTHING'],
+            'Gross Pay': result['PRORATED_MONTHLY_GROSS'],
+            'Pension': result['MANDATORY_PENSION'],
+            'Additional Pension': result['VOLUNTARY_PENSION'],
+            'PAYE': result['PAYE_TAX'],
+            'Other Deductions': result['OTHER_DEDUCTIONS'],
+            'Net Pay': result['NET_PAY'],
+            '_employee_id': employee_id
+        }
+
+        payroll_records.append(record)
+        total_payroll += record['Net Pay']
+
+    st.session_state.payroll_data = pd.DataFrame(payroll_records)
+    st.session_state.total_payroll = total_payroll
+    st.session_state.review_data = None
+    st.rerun()
+
+
+def handle_payroll_calculation(employees, period_name):
+    edited_df = st.data_editor(
+        st.session_state.payroll_data.drop(['_employee_id'], axis=1),
+        hide_index=True,
+        use_container_width=True,
+        num_rows="fixed",
+        disabled=('Employee', 'Staff ID', 'Department', 'Annual Salary'),
+        column_config={
+            'Basic': st.column_config.NumberColumn(
+                'Basic',
+                help='Basic salary component',
+                min_value=0,
+                format="₦%d"
+            ),
+            'Housing': st.column_config.NumberColumn(
+                'Housing',
+                help='Housing allowance',
+                min_value=0,
+                format="₦%d"
+            ),
+            'Transport': st.column_config.NumberColumn(
+                'Transport',
+                help='Transport allowance',
+                min_value=0,
+                format="₦%d"
+            ),
+            'Utility': st.column_config.NumberColumn(
+                'Utility',
+                help='Utility allowance',
+                min_value=0,
+                format="₦%d"
+            ),
+            'Meal': st.column_config.NumberColumn(
+                'Meal',
+                help='Meal allowance',
+                min_value=0,
+                format="₦%d"
+            ),
+            'Clothing': st.column_config.NumberColumn(
+                'Clothing',
+                help='Clothing allowance',
+                min_value=0,
+                format="₦%d"
+            ),
+            'Pension': st.column_config.NumberColumn(
+                'Pension',
+                help='Mandatory pension deduction',
+                min_value=0,
+                format="₦%d"
+            ),
+            'Additional Pension': st.column_config.NumberColumn(
+                'Additional Pension',
+                help='Voluntary pension contribution',
+                min_value=0,
+                format="₦%d"
+            ),
+            'PAYE': st.column_config.NumberColumn(
+                'PAYE',
+                help='PAYE tax deduction',
+                min_value=0,
+                format="₦%d"
+            ),
+            'Other Deductions': st.column_config.NumberColumn(
+                'Other Deductions',
+                help='Additional deductions',
+                min_value=0,
+                format="₦%d"
+            ),
+            'Gross Pay': st.column_config.NumberColumn(
+                'Gross Pay',
+                help='Total gross pay',
+                min_value=0,
+                format="₦%d"
+            ),
+            'Net Pay': st.column_config.NumberColumn(
+                `Net Pay',
+                help='Final take-home pay',
+                min_value=0,
+                format="₦%d"
+            )
+        }
+    )
+
+    col1, col2, col3 = st.columns([1, 1, 1])
+
+    with col1:
+        if st.button("Submit Payroll"):
+            success, message = create_payroll_period(
+                period_name,
+                datetime.now().strftime('%Y-%m-%d'),
+                datetime.now().strftime('%Y-%m-%d')
+            )
+
+            if success:
+                active_period = get_active_payroll_period()
+                if active_period:
+                    success, run_id = create_payroll_run(active_period['id'])
+
+                    if success:
+                        for _, row in edited_df.iterrows():
+                            employee_id = st.session_state.payroll_data.loc[
+                                st.session_state.payroll_data['Employee'] == row['Employee'],
+                                '_employee_id'
+                            ].iloc[0]
+
+                            payroll_details = {
+                                'employee_id': employee_id,
+                                'gross_pay': row['Gross Pay'],
+                                'net_pay': row['Net Pay'],
+                                'basic_salary': row['Basic'],
+                                'housing': row['Housing'],
+                                'transport': row['Transport'],
+                                'utility': row['Utility'],
+                                'meal': row['Meal'],
+                                'clothing': row['Clothing'],
+                                'pension_employee': row['Pension'],
+                                'pension_voluntary': row['Additional Pension'],
+                                'pension_employer': row['Pension'] * 1.25,  # 10% vs 8%
+                                'paye_tax': row['PAYE'],
+                                'other_deductions': row['Other Deductions'],
+                                'reimbursements': 0
+                            }
+                            save_payroll_details(run_id, payroll_details)
+
+                        update_payroll_run_status(run_id, 'pending_approval')
+                        st.success("Payroll submitted for approval!")
+
+                        st.session_state.payroll_data = None
+                        st.session_state.total_payroll = 0
+                        st.rerun()
+                    else:
+                        st.error(f"Failed to create payroll run: {run_id}")
+                else:
+                    st.error("Failed to get active payroll period")
+            else:
+                st.error(f"Failed to create payroll period: {message}")
+
+    with col2:
+        if st.button("Recalculate"):
+            st.session_state.payroll_data = None
+            st.rerun()
+
+    with col3:
+        if st.button("Start Over"):
+            st.session_state.payroll_data = None
+            st.session_state.total_payroll = 0
+            st.rerun()
+
+
+def main():
+    # Initialize session state for current page
     if 'current_page' not in st.session_state:
         st.session_state.current_page = "Salary Calculator"
 
-    # Create columns for menu items
-    cols = st.columns(len(menu_items))
+    # Style the navigation menu
+    st.markdown("""
+        <style>
+        div.stButton > button {
+            background-color: #f0f2f6;
+            border: none;
+            padding: 15px 32px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        div.stButton > button:hover {
+            background-color: #dee2e6;
+        }
+        div.stButton > button[kind="primary"] {
+            background-color: #2196F3;
+            color: white;
+        }
+        </style>
+    """, unsafe_allow_html=True)
 
-    # Create menu items
-    for idx, item in enumerate(menu_items):
-        with cols[idx]:
-            if st.button(
-                item,
-                type="secondary" if item != st.session_state.current_page else "primary",
-                use_container_width=True
-            ):
-                st.session_state.current_page = item
-                st.experimental_rerun()
+    # Create horizontal menu using columns
+    col1, col2, col3 = st.columns(3)
 
-    # Display selected page
+    with col1:
+        if st.button(
+            "Salary Calculator",
+            use_container_width=True,
+            type="primary" if st.session_state.current_page == "Salary Calculator" else "secondary"
+        ):
+            st.session_state.current_page = "Salary Calculator"
+            st.rerun()
+
+    with col2:
+        if st.button(
+            "Employee Management",
+            use_container_width=True,
+            type="primary" if st.session_state.current_page == "Employee Management" else "secondary"
+        ):
+            st.session_state.current_page = "Employee Management"
+            st.rerun()
+
+    with col3:
+        if st.button(
+            "Payroll Processing",
+            use_container_width=True,
+            type="primary" if st.session_state.current_page == "Payroll Processing" else "secondary"
+        ):
+            st.session_state.current_page = "Payroll Processing"
+            st.rerun()
+
+    # Display content based on selected page
     if st.session_state.current_page == "Salary Calculator":
         salary_calculator_page()
     elif st.session_state.current_page == "Employee Management":
         employee_management_page()
     else:
         payroll_processing_page()
+
 
 if __name__ == "__main__":
     st.markdown("""
@@ -958,9 +951,11 @@ if __name__ == "__main__":
             #stDecoration {display:none;}
         </style>
     """, unsafe_allow_html=True)
+
     try:
         with open("styles.css") as f:
             st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
     except FileNotFoundError:
         pass
+
     main()
