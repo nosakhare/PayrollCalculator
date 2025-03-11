@@ -1,0 +1,135 @@
+Product Requirements Document: Employee Management Feature
+1. Introduction
+This document outlines the requirements for adding an Employee Management feature to the existing Salary Calculator System. The feature will enable HR administrators to add employees to the system either individually through a form interface or in bulk via an enhanced CSV upload process, streamlining employee data management for payroll processing.
+2. Business Objectives
+Reduce the time required to onboard new employees into the payroll system
+Minimize data entry errors through form validation
+Provide a centralized database of employees for payroll processing
+Streamline the workflow between employee management and salary calculation
+Support both individual employee additions and bulk uploads for different team sizes
+3. User Personas
+Primary User: HR Administrator
+Manages employee records
+Processes monthly payroll
+Needs to quickly add new employees or update existing records
+Requires accuracy in employee data for tax and pension calculations
+Secondary User: Finance Manager
+Reviews payroll data for budget planning
+Needs accurate employee information for financial forecasting
+Requires historical employment data for financial reporting
+4. Feature Requirements
+4.1 Employee Database Management
+Implement a persistent employee database to store employee information
+Support CRUD operations (Create, Read, Update, Delete) for employee records
+Include data validation to ensure required fields are properly formatted
+Enable filtering and searching of employee records
+4.2 Individual Employee Addition
+Create a form interface for adding individual employees with the following fields:
+Account Number
+Staff ID (with automatic generation option)
+Email (with validation)
+Full Name
+Department (with dropdown of existing departments)
+Job Title
+Annual Gross Pay
+Start Date (calendar selector)
+End Date (for contract employees, optional)
+Contract Type (Full Time/Contract dropdown)
+Reimbursements (default 0)
+Other Deductions (default 0)
+Voluntary Pension Contribution (default 0)
+RSA PIN (Retirement Savings Account number)
+Implement form validation for all fields
+4.3 Bulk Employee Addition
+Enhance the existing CSV upload functionality to:
+Provide feedback on data validation errors before processing
+Allow updating existing employee records based on Staff ID
+Include template download with all required fields
+Display preview of data before final import
+Provide detailed error reporting for failed imports
+Add options to skip or replace duplicate records
+4.4 Employee List View
+Display a paginated list of all employees with key information
+Include sorting capabilities by any column
+Implement filtering by department, contract type, and active status
+Add search functionality by name, ID, or email
+Include options to edit or delete individual records
+4.5 Integration with Salary Calculator
+Enable direct selection of employees for salary calculation
+Allow filtering of employee list for batch processing
+Maintain data consistency between employee records and salary calculations
+Support historical record keeping of salary calculations by employee
+5. User Flow
+5.1 Individual Employee Addition
+User navigates to "Employee Management" section
+Selects "Add New Employee" button
+Completes the employee details form
+System validates all fields in real-time
+User submits the form
+System confirms successful addition
+User is returned to employee list view with new employee visible
+5.2 Bulk Employee Addition
+User navigates to "Employee Management" section
+Selects "Bulk Upload" button
+Downloads template if needed
+Uploads completed CSV file
+System validates CSV structure and data
+System displays preview with any validation issues highlighted
+User confirms import or cancels to fix errors
+System processes valid records and reports results
+User is returned to employee list with new employees visible
+5.3 Salary Calculation for Employees
+User navigates to "Employee Management" section
+Selects employees for salary calculation via checkboxes
+Clicks "Calculate Salaries" button
+System transfers selected employee data to salary calculator
+User reviews and confirms salary calculations
+System processes calculations and generates reports
+User can download results or return to employee management
+6. Technical Requirements
+6.1 Database
+SQLite database for local deployment
+Structure to support all employee fields
+Indexing for efficient querying by ID, name, and department
+6.2 Backend
+Extend existing Streamlit application with employee management capabilities
+Implement data validation for all employee fields
+Create API endpoints for CRUD operations on employee records
+Develop CSV parsing with error handling
+6.3 Frontend
+Design responsive form interfaces within Streamlit
+Implement real-time validation for employee data entry
+Create user-friendly list view with sorting and filtering
+Design clear error messaging for validation issues
+6.4 Integration
+Ensure seamless data flow between employee management and salary calculator
+Maintain consistent data validation rules across both features
+Support export of employee data in formats compatible with other systems
+7. Success Metrics
+Reduction in time spent on employee data entry by 50%
+Decrease in data entry errors by 80%
+100% of new employees added through the system rather than external processes
+User satisfaction score of 4.5/5 or higher in post-release survey
+90% reduction in CSV formatting issues during bulk uploads
+8. Implementation Phases
+Phase 1: Core Database and Individual Addition
+Implement employee database
+Create individual employee addition form
+Basic employee list view
+Integration with existing salary calculator
+Phase 2: Enhanced Bulk Upload
+Improved CSV validation and error reporting
+Preview functionality
+Duplicate handling
+Phase 3: Advanced Features
+Filtering and search capabilities
+Batch operations
+Historical record keeping
+Reporting capabilities
+9. Future Considerations
+Employee document management (contracts, identification)
+Integration with HR management systems
+Employee self-service portal
+Mobile application for manager approvals
+Advanced reporting and analytics
+Automated tax and compliance updates
