@@ -3,8 +3,9 @@ import pandas as pd
 from datetime import datetime
 from database import init_db, add_employee, get_all_employees, generate_staff_id
 from salary_calculator import SalaryCalculator
-from utils import validate_percentages, generate_csv_template
+from utils import validate_percentages, generate_csv_template, validate_csv, process_bulk_upload
 from payslip_generator import PayslipGenerator
+import os
 
 # Must be the first Streamlit command
 st.set_page_config(page_title="Nigerian Salary Calculator", page_icon="💰", layout="wide")
@@ -88,7 +89,66 @@ def employee_management_page():
 
     with tab3:
         st.subheader("Bulk Upload")
-        st.info("Bulk upload feature coming soon...")
+
+        # Instructions
+        st.markdown("""
+        ### Bulk Employee Upload Instructions
+        1. Download the template and fill in your employee data
+        2. Ensure all required fields are completed
+        3. Upload your file for processing
+        4. Review any validation errors before confirming the upload
+        """)
+
+        # Template download button
+        csv_template = generate_csv_template()
+        st.download_button(
+            label="📥 Download CSV Template",
+            data=csv_template,
+            file_name="employee_template.csv",
+            mime="text/csv",
+            help="Download a template CSV file with example data"
+        )
+
+        # File upload
+        uploaded_file = st.file_uploader("Upload your CSV file", type=['csv'])
+
+        if uploaded_file is not None:
+            try:
+                # Read the CSV file
+                df = pd.read_csv(uploaded_file)
+
+                # Show preview of the data
+                st.subheader("Data Preview")
+                st.dataframe(df.head())
+
+                # Validate the CSV data
+                validation_result = validate_csv(df)
+
+                if not validation_result['valid']:
+                    st.error("Validation Errors")
+                    for error in validation_result['errors']:
+                        st.warning(error)
+                else:
+                    # Show confirmation button only if validation passes
+                    if st.button("Confirm Upload"):
+                        with st.spinner("Processing employee data..."):
+                            results = process_bulk_upload(df)
+
+                            if results['success']:
+                                st.success(results['message'])
+                            else:
+                                st.error(results['message'])
+                                if results['errors']:
+                                    st.subheader("Error Details")
+                                    for error in results['errors']:
+                                        st.warning(error)
+
+                            # Provide option to start over
+                            if st.button("Upload Another File"):
+                                st.experimental_rerun()
+
+            except Exception as e:
+                st.error(f"Error processing file: {str(e)}")
 
 def salary_calculator_page():
     # Check if the request is for ads.txt
