@@ -1,7 +1,8 @@
 import streamlit as st
 import pandas as pd
-from datetime import datetime
-from database import init_db, add_employee, get_all_employees, generate_staff_id
+from datetime import datetime, date
+from calendar import monthrange
+from database import init_db, add_employee, get_all_employees, generate_staff_id, create_payroll_period, get_active_payroll_period, create_payroll_run, save_payroll_details, update_payroll_run_status
 from salary_calculator import SalaryCalculator
 from utils import validate_percentages, generate_csv_template, validate_csv, process_bulk_upload
 from payslip_generator import PayslipGenerator
@@ -536,14 +537,164 @@ def salary_calculator_page():
         """)
 
 
+def payroll_processing_page():
+    st.title("Payroll Processing")
+
+    # Create tabs for different payroll operations
+    tab1, tab2, tab3 = st.tabs(["Create Payroll Period", "Process Payroll", "Approval & History"])
+
+    with tab1:
+        st.subheader("Create New Payroll Period")
+
+        # Form for creating new payroll period
+        with st.form("create_period_form"):
+            # Get current month and year
+            today = date.today()
+            current_month = today.strftime('%B %Y')
+
+            period_name = st.text_input("Period Name", value=current_month)
+            col1, col2 = st.columns(2)
+
+            with col1:
+                start_date = st.date_input("Start Date", 
+                    value=date(today.year, today.month, 1))
+
+            with col2:
+                # Get last day of current month
+                _, last_day = monthrange(today.year, today.month)
+                end_date = st.date_input("End Date", 
+                    value=date(today.year, today.month, last_day))
+
+            submitted = st.form_submit_button("Create Payroll Period")
+
+            if submitted:
+                success, message = create_payroll_period(
+                    period_name,
+                    start_date.strftime('%Y-%m-%d'),
+                    end_date.strftime('%Y-%m-%d')
+                )
+                if success:
+                    st.success(message)
+                else:
+                    st.error(message)
+
+    with tab2:
+        st.subheader("Process Payroll")
+
+        # Get active payroll period
+        active_period = get_active_payroll_period()
+
+        if active_period:
+            st.info(f"Active Period: {active_period['period_name']}")
+
+            # Get all employees
+            employees = get_all_employees()
+
+            if employees:
+                # Multi-select for employees
+                selected_employees = st.multiselect(
+                    "Select Employees for Payroll Processing",
+                    options=[emp['staff_id'] for emp in employees],
+                    format_func=lambda x: next(emp['full_name'] for emp in employees if emp['staff_id'] == x)
+                )
+
+                if selected_employees:
+                    if st.button("Process Selected Employees"):
+                        success, run_id = create_payroll_run(active_period['id'])
+
+                        if success:
+                            calculator = SalaryCalculator({
+                                "BASIC": 30.0,
+                                "TRANSPORT": 25.0,
+                                "HOUSING": 20.0,
+                                "UTILITY": 15.0,
+                                "MEAL": 5.0,
+                                "CLOTHING": 5.0
+                            })
+
+                            progress_bar = st.progress(0)
+                            status_text = st.empty()
+
+                            for i, staff_id in enumerate(selected_employees):
+                                employee = next(emp for emp in employees if emp['staff_id'] == staff_id)
+
+                                # Create DataFrame for single employee
+                                emp_df = pd.DataFrame([{
+                                    'Account Number': employee['account_number'],
+                                    'STAFF ID': employee['staff_id'],
+                                    'Email': employee['email'],
+                                    'NAME': employee['full_name'],
+                                    'DEPARTMENT': employee['department'],
+                                    'JOB TITLE': employee['job_title'],
+                                    'ANNUAL GROSS PAY': employee['annual_gross_pay'],
+                                    'Contract Type': employee['contract_type'],
+                                    'START DATE': employee['start_date'],
+                                    'END DATE': employee['end_date'] or datetime.now().strftime('%Y-%m-%d'),
+                                    'Reimbursements': employee['reimbursements'],
+                                    'Other Deductions': employee['other_deductions'],
+                                    'VOLUNTARY_PENSION': employee['voluntary_pension']
+                                }])
+
+                                # Calculate salary
+                                result = calculator.process_dataframe(emp_df).iloc[0]
+
+                                # Save payroll details
+                                payroll_details = {
+                                    'employee_id': employee['id'],
+                                    'gross_pay': result['MONTHLY_GROSS'],
+                                    'net_pay': result['NET_PAY'],
+                                    'basic_salary': result['COMP_BASIC'],
+                                    'housing': result['COMP_HOUSING'],
+                                    'transport': result['COMP_TRANSPORT'],
+                                    'utility': result['COMP_UTILITY'],
+                                    'meal': result['COMP_MEAL'],
+                                    'clothing': result['COMP_CLOTHING'],
+                                    'pension_employee': result['MANDATORY_PENSION'],
+                                    'pension_employer': result['EMPLOYER_PENSION'],
+                                    'pension_voluntary': result['VOLUNTARY_PENSION'],
+                                    'paye_tax': result['PAYE_TAX'],
+                                    'other_deductions': result['OTHER_DEDUCTIONS'],
+                                    'reimbursements': result['REIMBURSEMENTS']
+                                }
+
+                                save_success, save_message = save_payroll_details(run_id, payroll_details)
+
+                                # Update progress
+                                progress = (i + 1) / len(selected_employees)
+                                progress_bar.progress(progress)
+                                status_text.text(f"Processing {i+1}/{len(selected_employees)}: {employee['full_name']}")
+
+                            # Update run status to pending approval
+                            update_payroll_run_status(run_id, 'pending_approval')
+
+                            st.success("Payroll processing completed and sent for approval!")
+                        else:
+                            st.error(f"Failed to create payroll run: {run_id}")
+                else:
+                    st.warning("Please select at least one employee to process payroll.")
+            else:
+                st.warning("No employees found in the system.")
+        else:
+            st.error("No active payroll period found. Please create a new period first.")
+
+    with tab3:
+        st.subheader("Payroll Approval & History")
+        # TODO: Add approval workflow and history view
+
 def main():
     st.sidebar.title("Navigation")
-    page = st.sidebar.radio("Select a page:", ["Salary Calculator", "Employee Management"])
+    page = st.sidebar.radio("Select a page:", [
+        "Salary Calculator",
+        "Employee Management",
+        "Payroll Processing"  # Add new page option
+    ])
 
     if page == "Salary Calculator":
         salary_calculator_page()
-    else:
+    elif page == "Employee Management":
         employee_management_page()
+    else:
+        payroll_processing_page()
 
 if __name__ == "__main__":
     st.markdown("""

@@ -6,7 +6,7 @@ def init_db():
     conn = sqlite3.connect('payroll.db')
     c = conn.cursor()
 
-    # Create employees table
+    # Create employees table (existing)
     c.execute('''
         CREATE TABLE IF NOT EXISTS employees (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -28,8 +28,171 @@ def init_db():
         )
     ''')
 
+    # Create payroll_periods table
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS payroll_periods (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            period_name TEXT NOT NULL,
+            start_date TEXT NOT NULL,
+            end_date TEXT NOT NULL,
+            status TEXT DEFAULT 'active' CHECK(status IN ('active', 'closed')),
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            closed_at TEXT
+        )
+    ''')
+
+    # Create payroll_runs table
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS payroll_runs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            period_id INTEGER NOT NULL,
+            run_date TEXT NOT NULL,
+            status TEXT DEFAULT 'draft' CHECK(status IN ('draft', 'pending_approval', 'approved', 'rejected')),
+            approved_by TEXT,
+            approved_at TEXT,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (period_id) REFERENCES payroll_periods (id)
+        )
+    ''')
+
+    # Create payroll_details table
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS payroll_details (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            run_id INTEGER NOT NULL,
+            employee_id INTEGER NOT NULL,
+            gross_pay REAL NOT NULL,
+            net_pay REAL NOT NULL,
+            basic_salary REAL NOT NULL,
+            housing REAL NOT NULL,
+            transport REAL NOT NULL,
+            utility REAL NOT NULL,
+            meal REAL NOT NULL,
+            clothing REAL NOT NULL,
+            pension_employee REAL NOT NULL,
+            pension_employer REAL NOT NULL,
+            pension_voluntary REAL NOT NULL,
+            paye_tax REAL NOT NULL,
+            other_deductions REAL NOT NULL,
+            reimbursements REAL NOT NULL,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (run_id) REFERENCES payroll_runs (id),
+            FOREIGN KEY (employee_id) REFERENCES employees (id)
+        )
+    ''')
+
     conn.commit()
     conn.close()
+
+# Add functions for payroll period management
+def create_payroll_period(period_name, start_date, end_date):
+    conn = sqlite3.connect('payroll.db')
+    c = conn.cursor()
+
+    try:
+        c.execute('''
+            INSERT INTO payroll_periods (period_name, start_date, end_date)
+            VALUES (?, ?, ?)
+        ''', (period_name, start_date, end_date))
+        conn.commit()
+        return True, "Payroll period created successfully"
+    except Exception as e:
+        return False, f"Error creating payroll period: {str(e)}"
+    finally:
+        conn.close()
+
+def get_active_payroll_period():
+    conn = sqlite3.connect('payroll.db')
+    conn.row_factory = sqlite3.Row
+    c = conn.cursor()
+
+    c.execute('SELECT * FROM payroll_periods WHERE status = "active" ORDER BY start_date DESC LIMIT 1')
+    period = c.fetchone()
+
+    conn.close()
+    return dict(period) if period else None
+
+def create_payroll_run(period_id):
+    conn = sqlite3.connect('payroll.db')
+    c = conn.cursor()
+
+    try:
+        run_date = datetime.now().strftime('%Y-%m-%d')
+        c.execute('''
+            INSERT INTO payroll_runs (period_id, run_date)
+            VALUES (?, ?)
+        ''', (period_id, run_date))
+        run_id = c.lastrowid
+        conn.commit()
+        return True, run_id
+    except Exception as e:
+        return False, f"Error creating payroll run: {str(e)}"
+    finally:
+        conn.close()
+
+def save_payroll_details(run_id, employee_details):
+    conn = sqlite3.connect('payroll.db')
+    c = conn.cursor()
+
+    try:
+        c.execute('''
+            INSERT INTO payroll_details (
+                run_id, employee_id, gross_pay, net_pay,
+                basic_salary, housing, transport, utility,
+                meal, clothing, pension_employee, pension_employer,
+                pension_voluntary, paye_tax, other_deductions, reimbursements
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (
+            run_id, employee_details['employee_id'],
+            employee_details['gross_pay'], employee_details['net_pay'],
+            employee_details['basic_salary'], employee_details['housing'],
+            employee_details['transport'], employee_details['utility'],
+            employee_details['meal'], employee_details['clothing'],
+            employee_details['pension_employee'], employee_details['pension_employer'],
+            employee_details['pension_voluntary'], employee_details['paye_tax'],
+            employee_details['other_deductions'], employee_details['reimbursements']
+        ))
+        conn.commit()
+        return True, "Payroll details saved successfully"
+    except Exception as e:
+        return False, f"Error saving payroll details: {str(e)}"
+    finally:
+        conn.close()
+
+def update_payroll_run_status(run_id, status, approver=None):
+    conn = sqlite3.connect('payroll.db')
+    c = conn.cursor()
+
+    try:
+        if status == 'approved':
+            c.execute('''
+                UPDATE payroll_runs 
+                SET status = ?, approved_by = ?, approved_at = CURRENT_TIMESTAMP
+                WHERE id = ?
+            ''', (status, approver, run_id))
+        else:
+            c.execute('''
+                UPDATE payroll_runs 
+                SET status = ?
+                WHERE id = ?
+            ''', (status, run_id))
+        conn.commit()
+        return True, f"Payroll run status updated to {status}"
+    except Exception as e:
+        return False, f"Error updating payroll run status: {str(e)}"
+    finally:
+        conn.close()
+
+def get_employee_by_id(employee_id):
+    conn = sqlite3.connect('payroll.db')
+    conn.row_factory = sqlite3.Row
+    c = conn.cursor()
+
+    c.execute('SELECT * FROM employees WHERE id = ?', (employee_id,))
+    employee = c.fetchone()
+
+    conn.close()
+    return dict(employee) if employee else None
 
 def add_employee(employee_data):
     conn = sqlite3.connect('payroll.db')
