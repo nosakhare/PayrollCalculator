@@ -14,6 +14,34 @@ st.set_page_config(page_title="Nigerian Salary Calculator", page_icon="💰", la
 # Initialize database
 init_db()
 
+# Add custom CSS for horizontal menu
+st.markdown("""
+<style>
+.horizontal-menu {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    padding: 10px;
+    background-color: #f0f2f6;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+.menu-item {
+    padding: 10px 20px;
+    border-radius: 5px;
+    text-decoration: none;
+    color: black;
+    cursor: pointer;
+}
+
+.selected {
+    background-color: #2196F3;
+    color: white !important;
+}
+</style>
+""", unsafe_allow_html=True)
+
 def employee_management_page():
     st.title("Employee Management")
 
@@ -158,7 +186,6 @@ def salary_calculator_page():
         st.write("google.com, pub-4067343505079138, DIRECT, f08c47fec0942fa0")
         st.stop()
 
-    st.sidebar.image("generated-icon.png", width=100)
     st.title("Simple Salary Calculator for Nigerian Employees")
 
     # Initialize session state
@@ -783,7 +810,7 @@ def payroll_processing_page():
                     ),
                     'Pension': st.column_config.NumberColumn(
                         'Pension',
-                        help='Mandatory pension deduction',
+                                                help='Mandatory pension deduction',
                         min_value=0,
                         format="₦%d"
                     ),
@@ -890,31 +917,50 @@ def payroll_processing_page():
         st.info("Payroll history will be implemented in the next phase.")
 
 def main():
-    st.sidebar.title("Navigation")
-    page = st.sidebar.radio("Select a page:", [
-        "Salary Calculator",
-        "Employee Management",
-        "Payroll Processing"
-    ])
+    # Create horizontal menu
+    menu_items = ["Salary Calculator", "Employee Management", "Payroll Processing"]
 
-    if page == "Salary Calculator":
+    # Initialize session state for current page if not exists
+    if 'current_page' not in st.session_state:
+        st.session_state.current_page = "Salary Calculator"
+
+    # Create columns for menu items
+    cols = st.columns(len(menu_items))
+
+    # Create menu items
+    for idx, item in enumerate(menu_items):
+        with cols[idx]:
+            if st.button(
+                item,
+                type="secondary" if item != st.session_state.current_page else "primary",
+                use_container_width=True
+            ):
+                st.session_state.current_page = item
+                st.experimental_rerun()
+
+    # Display selected page
+    if st.session_state.current_page == "Salary Calculator":
         salary_calculator_page()
-    elif page == "Employee Management":
+    elif st.session_state.current_page == "Employee Management":
         employee_management_page()
     else:
         payroll_processing_page()
 
 if __name__ == "__main__":
     st.markdown("""
-    <style>
-    .reportview-container .main .block-container{
-        padding-top: 2rem;
-    }
-    </style>
+        <style>
+            .reportview-container {
+                margin-top: -2em;
+            }
+            #MainMenu {visibility: hidden;}
+            .stDeployButton {display:none;}
+            footer {visibility: hidden;}
+            #stDecoration {display:none;}
+        </style>
     """, unsafe_allow_html=True)
     try:
         with open("styles.css") as f:
-            st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+            st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
     except FileNotFoundError:
         pass
     main()
