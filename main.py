@@ -146,7 +146,7 @@ def employee_management_page():
 
                             # Provide option to start over
                             if st.button("Upload Another File"):
-                                st.experimental_rerun()
+                                st.rerun()
 
             except Exception as e:
                 st.error(f"Error processing file: {str(e)}")
@@ -372,7 +372,7 @@ def salary_calculator_page():
             # Button to calculate another salary
             if st.button("Start a New Calculation"):
                 st.session_state.single_calculation_result = None
-                st.experimental_rerun()
+                st.rerun()
 
     with tab2:
         # Add welcome message
@@ -490,7 +490,7 @@ def salary_calculator_page():
             if st.button("Start a New Calculation"):
                 st.session_state.uploaded_data = None
                 st.session_state.calculated_results = None
-                st.experimental_rerun()
+                st.rerun()
 
     # Instructions
     with st.expander("Quick Guide"):
@@ -714,7 +714,7 @@ def payroll_processing_page():
                     # Clear review data
                     st.session_state.review_data = None
                     # Rerun to show calculated results
-                    st.experimental_rerun()
+                    st.rerun()
 
             with col2:
                 if st.button("Save Changes"):
@@ -727,7 +727,7 @@ def payroll_processing_page():
                     st.session_state.review_data = None
                     st.session_state.payroll_data = None
                     st.session_state.total_payroll = 0
-                    st.experimental_rerun()
+                    st.rerun()
 
         # Show calculated results if available
         elif st.session_state.payroll_data is not None:
@@ -877,13 +877,13 @@ def payroll_processing_page():
                 if st.button("Recalculate"):
                     # Clear payroll data to trigger recalculation
                     st.session_state.payroll_data = None
-                    st.experimental_rerun()
+                    st.rerun()
 
             with col3:
                 if st.button("Start Over"):
                     st.session_state.payroll_data = None
                     st.session_state.total_payroll = 0
-                    st.experimental_rerun()
+                    st.rerun()
 
     with tab2:
         st.subheader("Payroll History")
