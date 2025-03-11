@@ -1,6 +1,7 @@
 import streamlit as st
-import os
-from datetime import datetime, timedelta
+import pandas as pd
+from datetime import datetime
+from database import init_db, add_employee, get_all_employees, generate_staff_id
 from salary_calculator import SalaryCalculator
 from utils import validate_percentages, generate_csv_template
 from payslip_generator import PayslipGenerator
@@ -8,15 +9,94 @@ from payslip_generator import PayslipGenerator
 # Must be the first Streamlit command
 st.set_page_config(page_title="Nigerian Salary Calculator", page_icon="💰", layout="wide")
 
-# Check if the request is for ads.txt
-path = st.query_params.get("path", [""])[0]
-if path == "ads.txt":
-    st.write("google.com, pub-4067343505079138, DIRECT, f08c47fec0942fa0")
-    st.stop()
+# Initialize database
+init_db()
 
-import pandas as pd
+def employee_management_page():
+    st.title("Employee Management")
 
-def main():
+    # Create tabs for different operations
+    tab1, tab2, tab3 = st.tabs(["Add Employee", "View Employees", "Bulk Upload"])
+
+    with tab1:
+        st.subheader("Add New Employee")
+        with st.form("add_employee_form"):
+            col1, col2 = st.columns(2)
+
+            with col1:
+                staff_id = st.text_input("Staff ID", value=generate_staff_id(), disabled=True)
+                email = st.text_input("Email", key="email")
+                full_name = st.text_input("Full Name", key="full_name")
+                department = st.text_input("Department", key="department")
+
+            with col2:
+                job_title = st.text_input("Job Title", key="job_title")
+                annual_gross = st.number_input("Annual Gross Pay (₦)", min_value=0.0, key="annual_gross")
+                account_number = st.text_input("Account Number", key="account_number")
+                rsa_pin = st.text_input("RSA PIN (Optional)", key="rsa_pin")
+
+            col3, col4 = st.columns(2)
+            with col3:
+                contract_type = st.selectbox("Contract Type", ["Full Time", "Contract"], key="contract_type")
+                start_date = st.date_input("Start Date", key="start_date")
+
+            with col4:
+                end_date = st.date_input("End Date (Optional)", key="end_date")
+                reimbursements = st.number_input("Reimbursements (₦)", min_value=0.0, key="reimbursements")
+
+            col5, col6 = st.columns(2)
+            with col5:
+                other_deductions = st.number_input("Other Deductions (₦)", min_value=0.0, key="other_deductions")
+
+            with col6:
+                voluntary_pension = st.number_input("Voluntary Pension (₦)", min_value=0.0, key="voluntary_pension")
+
+            submitted = st.form_submit_button("Add Employee")
+
+            if submitted:
+                employee_data = {
+                    'staff_id': staff_id,
+                    'email': email,
+                    'full_name': full_name,
+                    'department': department,
+                    'job_title': job_title,
+                    'annual_gross_pay': annual_gross,
+                    'start_date': start_date.strftime('%Y-%m-%d'),
+                    'end_date': end_date.strftime('%Y-%m-%d') if end_date else None,
+                    'contract_type': contract_type,
+                    'reimbursements': reimbursements,
+                    'other_deductions': other_deductions,
+                    'voluntary_pension': voluntary_pension,
+                    'rsa_pin': rsa_pin,
+                    'account_number': account_number
+                }
+
+                success, message = add_employee(employee_data)
+                if success:
+                    st.success(message)
+                else:
+                    st.error(message)
+
+    with tab2:
+        st.subheader("Employee List")
+        employees = get_all_employees()
+        if employees:
+            df = pd.DataFrame(employees)
+            st.dataframe(df)
+        else:
+            st.info("No employees found in the system.")
+
+    with tab3:
+        st.subheader("Bulk Upload")
+        st.info("Bulk upload feature coming soon...")
+
+def salary_calculator_page():
+    # Check if the request is for ads.txt
+    path = st.query_params.get("path", [""])[0]
+    if path == "ads.txt":
+        st.write("google.com, pub-4067343505079138, DIRECT, f08c47fec0942fa0")
+        st.stop()
+
     st.sidebar.image("generated-icon.png", width=100)
     st.title("Simple Salary Calculator for Nigerian Employees")
 
@@ -394,6 +474,16 @@ def main():
 
         Note: Contract employees don't have pension deductions.
         """)
+
+
+def main():
+    st.sidebar.title("Navigation")
+    page = st.sidebar.radio("Select a page:", ["Salary Calculator", "Employee Management"])
+
+    if page == "Salary Calculator":
+        salary_calculator_page()
+    else:
+        employee_management_page()
 
 if __name__ == "__main__":
     st.markdown("""
