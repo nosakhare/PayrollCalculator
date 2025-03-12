@@ -11,12 +11,16 @@ st.set_page_config(
     layout="wide"
 )
 
-# Hide Streamlit's default menu and footer
+# Hide Streamlit's default menu, footer, and file uploader UI
 st.markdown("""
     <style>
         #MainMenu {visibility: hidden;}
         footer {visibility: hidden;}
         .stDeployButton {display:none;}
+        .css-1d391kg {display: none;}  /* Hides file explorer */
+        section[data-testid="stSidebar"] > div:first-child {background-color: #f0f2f6;}
+        .uploadedFile {display: none;}  /* Hides uploaded file info */
+        .css-1544g2n.e1fqkh3o4 {padding-top: 2rem;}  /* Adjusts top padding */
     </style>
 """, unsafe_allow_html=True)
 
