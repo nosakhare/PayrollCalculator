@@ -600,10 +600,10 @@ def payroll_processing_page():
     if 'review_data' not in st.session_state:
         st.session_state.review_data = None
 
-    tab1, tab2 = st.tabs(["Process Payroll", "Payroll History"])
+    tab1, tab2 = st.tabs(["Process Payroll", "Export Options"])
 
     with tab1:
-        st.subheader("Current Payroll")
+        st.subheader("Payroll Calculator")
 
         # Add payroll period selection
         col1, col2 = st.columns([2, 1])
@@ -616,14 +616,88 @@ def payroll_processing_page():
             st.metric("Total Payroll", f"₦{st.session_state.total_payroll:,.2f}")
 
         # Handle payroll processing actions
-        if st.button("Review Payroll Data") or st.session_state.review_data is not None:
+        if st.button("Review Employee Data") or st.session_state.review_data is not None:
             handle_payroll_review(employees)
         elif st.session_state.payroll_data is not None:
-            handle_payroll_calculation(employees, period_name)
+            handle_payroll_calculation(employees)
 
     with tab2:
-        st.subheader("Payroll History")
-        st.info("Payroll history will be implemented in the next phase.")
+        st.subheader("Export Options")
+        st.info("You can download the calculated payroll data as CSV or generate payslips.")
+        
+        if st.session_state.payroll_data is not None:
+            # Add option to download CSV
+            csv_data = st.session_state.payroll_data.drop(['_employee_id'], axis=1).to_csv(index=False).encode('utf-8')
+            st.download_button(
+                label="Download Payroll Data (CSV)",
+                data=csv_data,
+                file_name=f"payroll_{period_name.replace(' ', '_')}.csv",
+                mime="text/csv"
+            )
+            
+            # Add option to generate payslips
+            st.subheader("Generate Payslips")
+            company_name = st.text_input("Company Name", value="Your Company Name")
+            company_address = st.text_area("Company Address", value="Company Address", height=100)
+            rc_number = st.text_input("RC Number", value="RC123456")
+            
+            if st.button("Generate Payslips"):
+                try:
+                    generator = PayslipGenerator()
+                    payslip_dir = "payslips"
+                    os.makedirs(payslip_dir, exist_ok=True)
+
+                    # Generate payslips for all employees
+                    for index, row in st.session_state.payroll_data.iterrows():
+                        employee_data = {
+                            'id': row.get('Staff ID', f'TEMP{index + 1}'),
+                            'company_info': {
+                                'name': company_name,
+                                'address': company_address,
+                                'rc_number': rc_number
+                            },
+                            'name': row.get('Employee', 'Employee'),
+                            'department': row.get('Department', 'Department'),
+                            'pay_period': period_name,
+                            'salary_data': {
+                                'earnings': {
+                                    'Basic Salary': row['Basic'],
+                                    'Transport': row['Transport'],
+                                    'Housing': row['Housing'],
+                                    'Utility': row['Utility'],
+                                    'Meal': row['Meal'],
+                                    'Clothing': row['Clothing']
+                                },
+                                'deductions': {
+                                    'PAYE Tax': row['PAYE'],
+                                    'Pension': row['Pension'],
+                                    'Other Deductions': row['Other Deductions']
+                                },
+                                'employer_pension': row['Pension'] * 1.25,
+                                'net_pay': row['Net Pay']
+                            }
+                        }
+                        generator.generate_payslip(employee_data, payslip_dir)
+
+                    # Create ZIP file of all payslips
+                    import shutil
+
+                    zip_path = "payslips.zip"
+                    shutil.make_archive("payslips", 'zip', payslip_dir)
+
+                    # Offer ZIP download
+                    with open(zip_path, "rb") as zip_file:
+                        st.download_button(
+                            label="Download All Payslips",
+                            data=zip_file.read(),
+                            file_name="payslips.zip",
+                            mime="application/zip"
+                        )
+
+                except Exception as e:
+                    st.error(f"Error generating payslips: {str(e)}")
+        else:
+            st.warning("No payroll data available. Please calculate payroll first.")
 
 
 def handle_payroll_review(employees):
@@ -758,6 +832,7 @@ def process_reviewed_data(edited_df, employees):
             'Additional Pension': result['VOLUNTARY_PENSION'],
             'PAYE': result['PAYE_TAX'],
             'Other Deductions': result['OTHER_DEDUCTIONS'],
+            'Reimbursements': result['REIMBURSEMENTS'],
             'Net Pay': result['NET_PAY'],
             '_employee_id': employee_id
         }
@@ -771,7 +846,7 @@ def process_reviewed_data(edited_df, employees):
     st.rerun()
 
 
-def handle_payroll_calculation(employees, period_name):
+def handle_payroll_calculation(employees):
     edited_df = st.data_editor(
         st.session_state.payroll_data.drop(['_employee_id'], axis=1),
         hide_index=True,
@@ -839,6 +914,12 @@ def handle_payroll_calculation(employees, period_name):
                 min_value=0,
                 format="₦%d"
             ),
+            'Reimbursements': st.column_config.NumberColumn(
+                'Reimbursements',
+                help='Additional reimbursements',
+                min_value=0,
+                format="₦%d"
+            ),
             'Gross Pay': st.column_config.NumberColumn(
                 'Gross Pay',
                 help='Total gross pay',
@@ -855,66 +936,14 @@ def handle_payroll_calculation(employees, period_name):
     )
 
     # Action buttons
-    col1, col2, col3 = st.columns([1, 1, 1])
+    col1, col2 = st.columns([1, 1])
 
     with col1:
-        if st.button("Submit Payroll"):
-            success, message = create_payroll_period(
-                period_name,
-                datetime.now().strftime('%Y-%m-%d'),
-                datetime.now().strftime('%Y-%m-%d')
-            )
-
-            if success:
-                active_period = get_active_payroll_period()
-                if active_period:
-                    success, run_id = create_payroll_run(active_period['id'])
-
-                    if success:
-                        for _, row in edited_df.iterrows():
-                            employee_id = st.session_state.payroll_data.loc[
-                                st.session_state.payroll_data['Employee'] == row['Employee'],
-                                '_employee_id'
-                            ].iloc[0]
-
-                            payroll_details = {
-                                'employee_id': employee_id,
-                                'gross_pay': row['Gross Pay'],
-                                'net_pay': row['Net Pay'],
-                                'basic_salary': row['Basic'],
-                                'housing': row['Housing'],
-                                'transport': row['Transport'],
-                                'utility': row['Utility'],
-                                'meal': row['Meal'],
-                                'clothing': row['Clothing'],
-                                'pension_employee': row['Pension'],
-                                'pension_voluntary': row['Additional Pension'],
-                                'pension_employer': row['Pension'] * 1.25,
-                                'paye_tax': row['PAYE'],
-                                'other_deductions': row['Other Deductions'],
-                                'reimbursements': row['Reimbursements']
-                            }
-                            save_payroll_details(run_id, payroll_details)
-
-                        update_payroll_run_status(run_id, 'pending_approval')
-                        st.success("Payroll submitted for approval!")
-
-                        st.session_state.payroll_data = None
-                        st.session_state.total_payroll = 0
-                        st.rerun()
-                    else:
-                        st.error(f"Failed to create payroll run: {run_id}")
-                else:
-                    st.error("Failed to get active payroll period")
-            else:
-                st.error(f"Failed to create payroll period: {message}")
-
-    with col2:
         if st.button("Recalculate"):
             st.session_state.payroll_data = None
             st.rerun()
 
-    with col3:
+    with col2:
         if st.button("Start Over"):
             st.session_state.payroll_data = None
             st.session_state.total_payroll = 0
