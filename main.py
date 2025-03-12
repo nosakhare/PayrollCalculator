@@ -626,12 +626,32 @@ def payroll_processing_page():
         st.info("You can download the calculated payroll data as CSV or generate payslips.")
         
         if st.session_state.payroll_data is not None:
+            # Transform data to match Salary Calculator format
+            calculator_format_data = st.session_state.payroll_data.rename(columns={
+                'Employee': 'NAME',
+                'Staff ID': 'STAFF ID',
+                'Department': 'DEPARTMENT',
+                'Annual Salary': 'ANNUAL GROSS PAY',
+                'Basic': 'COMP_BASIC',
+                'Housing': 'COMP_HOUSING',
+                'Transport': 'COMP_TRANSPORT', 
+                'Utility': 'COMP_UTILITY',
+                'Meal': 'COMP_MEAL',
+                'Clothing': 'COMP_CLOTHING',
+                'Gross Pay': 'PRORATED_MONTHLY_GROSS',
+                'Pension': 'MANDATORY_PENSION',
+                'Additional Pension': 'VOLUNTARY_PENSION',
+                'PAYE': 'PAYE_TAX',
+                'Reimbursements': 'REIMBURSEMENTS',
+                'Net Pay': 'NET_PAY'
+            })
+            
             # Add option to download CSV
-            csv_data = st.session_state.payroll_data.drop(['_employee_id'], axis=1).to_csv(index=False).encode('utf-8')
+            csv_data = calculator_format_data.drop(['_employee_id'], axis=1).to_csv(index=False).encode('utf-8')
             st.download_button(
                 label="Download Payroll Data (CSV)",
                 data=csv_data,
-                file_name=f"payroll_{period_name.replace(' ', '_')}.csv",
+                file_name=f"salary_results_{period_name.replace(' ', '_')}.csv",
                 mime="text/csv"
             )
             
