@@ -9,7 +9,20 @@ from payslip_generator import PayslipGenerator
 import os
 
 # Must be the first Streamlit command
-st.set_page_config(page_title="Nigerian Salary Calculator", page_icon="💰", layout="wide")
+st.set_page_config(
+    page_title="Nigerian Payroll System",
+    page_icon="💰",
+    layout="wide"
+)
+
+# Hide Streamlit's default menu and footer
+st.markdown("""
+    <style>
+        #MainMenu {visibility: hidden;}
+        footer {visibility: hidden;}
+        .stDeployButton {display:none;}
+    </style>
+""", unsafe_allow_html=True)
 
 # Initialize database
 init_db()
@@ -806,7 +819,8 @@ def handle_payroll_calculation(employees, period_name):
                 min_value=0,
                 format="₦%d"
             )
-        }    )
+        }
+    )
 
     # Action buttons
     col1, col2, col3 = st.columns([1, 1, 1])
@@ -876,86 +890,39 @@ def handle_payroll_calculation(employees, period_name):
 
 
 def main():
-    # Initialize session state for current page
-    if 'current_page' not in st.session_state:
-        st.session_state.current_page = "Salary Calculator"
+    # Add sidebar navigation with descriptions
+    with st.sidebar:
+        st.title("💰 Payroll System")
+        st.markdown("---")  # Add separator
 
-    # Style the navigation menu
-    st.markdown("""
-        <style>
-        div.stButton > button {
-            background-color: #f0f2f6;
-            border: none;
-            padding: 15px 32px;
-            border-radius: 4px;
-            margin-bottom: 20px;
+        current_page = st.radio(
+            "",  # Hide the label since we have a title
+            ["Salary Calculator", "Employee Management", "Payroll Processing"],
+            index=0,  # Default to Salary Calculator
+            format_func=lambda x: {
+                "Salary Calculator": "📊 Salary Calculator",
+                "Employee Management": "👥 Employee Management",
+                "Payroll Processing": "💳 Payroll Processing"
+            }[x]
+        )
+
+        st.markdown("---")  # Add separator
+
+        # Add page descriptions
+        descriptions = {
+            "Salary Calculator": "Calculate accurate salaries with tax and pension deductions",
+            "Employee Management": "Manage employee records and bulk upload data",
+            "Payroll Processing": "Process monthly payroll and generate payslips"
         }
-        div.stButton > button:hover {
-            background-color: #dee2e6;
-        }
-        div.stButton > button[kind="primary"] {
-            background-color: #2196F3;
-            color: white;
-        }
-        </style>
-    """, unsafe_allow_html=True)
+        st.info(descriptions[current_page])
 
-    # Create horizontal menu using columns
-    col1, col2, col3 = st.columns(3)
-
-    with col1:
-        if st.button(
-            "Salary Calculator",
-            use_container_width=True,
-            type="primary" if st.session_state.current_page == "Salary Calculator" else "secondary"
-        ):
-            st.session_state.current_page = "Salary Calculator"
-            st.rerun()
-
-    with col2:
-        if st.button(
-            "Employee Management",
-            use_container_width=True,
-            type="primary" if st.session_state.current_page == "Employee Management" else "secondary"
-        ):
-            st.session_state.current_page = "Employee Management"
-            st.rerun()
-
-    with col3:
-        if st.button(
-            "Payroll Processing",
-            use_container_width=True,
-            type="primary" if st.session_state.current_page == "Payroll Processing" else "secondary"
-        ):
-            st.session_state.current_page = "Payroll Processing"
-            st.rerun()
-
-    # Display content based on selected page
-    if st.session_state.current_page == "Salary Calculator":
+    # Display selected page
+    if current_page == "Salary Calculator":
         salary_calculator_page()
-    elif st.session_state.current_page == "Employee Management":
+    elif current_page == "Employee Management":
         employee_management_page()
     else:
         payroll_processing_page()
 
-
 if __name__ == "__main__":
-    st.markdown("""
-        <style>
-            .reportview-container {
-                margin-top: -2em;
-            }
-            #MainMenu {visibility: hidden;}
-            .stDeployButton {display:none;}
-            footer {visibility: hidden;}
-            #stDecoration {display:none;}
-        </style>
-    """, unsafe_allow_html=True)
-
-    try:
-        with open("styles.css") as f:
-            st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
-    except FileNotFoundError:
-        pass
-
     main()
