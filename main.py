@@ -37,39 +37,66 @@ def employee_management_page():
     with tab1:
         st.subheader("Add New Employee")
         with st.form("add_employee_form"):
+            # Required Fields Section
+            st.subheader("Required Information")
             col1, col2 = st.columns(2)
 
             with col1:
                 staff_id = st.text_input("Staff ID", value=generate_staff_id(), disabled=True)
-                email = st.text_input("Email", key="email")
-                full_name = st.text_input("Full Name", key="full_name")
-                department = st.text_input("Department", key="department")
+                email = st.text_input("Email *", key="email")
+                full_name = st.text_input("Full Name *", key="full_name")
+                department = st.text_input("Department *", key="department")
 
             with col2:
-                job_title = st.text_input("Job Title", key="job_title")
-                annual_gross = st.number_input("Annual Gross Pay (₦)", min_value=0.0, key="annual_gross")
-                account_number = st.text_input("Account Number", key="account_number")
-                rsa_pin = st.text_input("RSA PIN (Optional)", key="rsa_pin")
+                job_title = st.text_input("Job Title *", key="job_title")
+                annual_gross = st.number_input("Annual Gross Pay (₦) *", min_value=0.0, key="annual_gross")
+                account_number = st.text_input("Account Number *", key="account_number")
 
             col3, col4 = st.columns(2)
             with col3:
-                contract_type = st.selectbox("Contract Type", ["Full Time", "Contract"], key="contract_type")
-                start_date = st.date_input("Start Date", key="start_date")
+                contract_type = st.selectbox("Contract Type *", ["Full Time", "Contract"], key="contract_type")
+                start_date = st.date_input("Start Date *", key="start_date")
 
             with col4:
                 end_date = st.date_input("End Date (Optional)", key="end_date")
-                reimbursements = st.number_input("Reimbursements (₦)", min_value=0.0, key="reimbursements")
+                rsa_pin = st.text_input("RSA PIN (Optional)", key="rsa_pin")
+
+            # Optional Fields Section
+            st.markdown("---")
+            st.subheader("Optional Details")
+            st.info("These fields can be updated later during payroll review.")
 
             col5, col6 = st.columns(2)
             with col5:
-                other_deductions = st.number_input("Other Deductions (₦)", min_value=0.0, key="other_deductions")
+                reimbursements = st.number_input("Reimbursements (₦)",
+                                                 min_value=0.0,
+                                                 value=0.0,
+                                                 help="Additional allowances like transport or meal allowances",
+                                                 key="reimbursements"
+                                                 )
 
             with col6:
-                voluntary_pension = st.number_input("Voluntary Pension (₦)", min_value=0.0, key="voluntary_pension")
+                other_deductions = st.number_input("Other Deductions (₦)",
+                                                   min_value=0.0,
+                                                   value=0.0,
+                                                   help="Additional deductions like loans or advances",
+                                                   key="other_deductions"
+                                                   )
+
+            voluntary_pension = st.number_input("Voluntary Pension (₦)",
+                                                min_value=0.0,
+                                                value=0.0,
+                                                help="Additional voluntary pension contributions",
+                                                key="voluntary_pension"
+                                                )
 
             submitted = st.form_submit_button("Add Employee")
 
             if submitted:
+                if not email or not full_name or not department or not job_title or not annual_gross or not account_number:
+                    st.error("Please fill in all required fields marked with *")
+                    return
+
                 employee_data = {
                     'staff_id': staff_id,
                     'email': email,
@@ -231,10 +258,12 @@ def salary_calculator_page():
             col3, col4 = st.columns(2)
             with col3:
                 reimbursements = st.number_input("Extra Allowances (₦)", min_value=0.0, value=0.0, key="single_reimburse")
-                other_deductions = st.number_input("Additional Deductions (₦)", min_value=0.0, value=0.0, key="single_deduct")
+                other_deductions = st.number_input("Additional Deductions (₦)", min_value=0.0, value=0.0,
+                                                  key="single_deduct")
 
             with col4:
-                voluntary_pension = st.number_input("Extra Pension Contribution (₦)", min_value=0.0, value=0.0, key="single_vol_pension")
+                voluntary_pension = st.number_input("Extra Pension Contribution (₦)", min_value=0.0, value=0.0,
+                                                   key="single_vol_pension")
 
             # Only enable the button if annual_gross is greater than zero
             submitted = st.form_submit_button("Show Me the Results", disabled=(annual_gross <= 0))
@@ -298,7 +327,8 @@ def salary_calculator_page():
             with details_tab2:
                 st.subheader("Deductions")
                 deduction_data = {
-                    "Deduction": ["Employee Pension", "Voluntary Pension", "PAYE Tax", "Other Deductions", "Total Deductions"],
+                    "Deduction": ["Employee Pension", "Voluntary Pension", "PAYE Tax", "Other Deductions",
+                                  "Total Deductions"],
                     "Amount": [
                         f"₦{result['MANDATORY_PENSION']:,.2f}",
                         f"₦{result['VOLUNTARY_PENSION']:,.2f}",
@@ -432,7 +462,8 @@ def salary_calculator_page():
             # Company Information Form moved here for bulk generation
             st.subheader("Company Information for Payslips")
             bulk_company_name = st.text_input("Company Name", value="Your Company Name", key="bulk_company_name")
-            bulk_company_address = st.text_area("Company Address", value="Company Address", height=100, key="bulk_company_address")
+            bulk_company_address = st.text_area("Company Address", value="Company Address", height=100,
+                                                key="bulk_company_address")
             bulk_rc_number = st.text_input("RC Number", value="RC123456", key="bulk_rc_number")
 
             # Add bulk payslip generation button
@@ -445,7 +476,7 @@ def salary_calculator_page():
                     # Generate payslips for all employees
                     for index, row in st.session_state.calculated_results.iterrows():
                         employee_data = {
-                            'id': row.get('STAFF ID', f'TEMP{index+1}'),
+                            'id': row.get('STAFF ID', f'TEMP{index + 1}'),
                             'company_info': {
                                 'name': bulk_company_name,
                                 'address': bulk_company_address,
@@ -476,6 +507,7 @@ def salary_calculator_page():
 
                     # Create ZIP file of all payslips
                     import shutil
+
                     zip_path = "payslips.zip"
                     shutil.make_archive("payslips", 'zip', payslip_dir)
 
@@ -604,9 +636,9 @@ def handle_payroll_review(employees):
                 'Department': employee['department'],
                 'Annual Gross Pay': employee['annual_gross_pay'],
                 'Contract Type': employee['contract_type'],
-                'Reimbursements': employee['reimbursements'],
-                'Other Deductions': employee['other_deductions'],
-                'Voluntary Pension': employee['voluntary_pension'],
+                'Reimbursements': employee.get('reimbursements', 0),  # Default to 0 if not set
+                'Other Deductions': employee.get('other_deductions', 0),  # Default to 0 if not set
+                'Voluntary Pension': employee.get('voluntary_pension', 0),  # Default to 0 if not set
                 '_employee_id': employee['id']
             }
             review_records.append(record)
@@ -632,19 +664,19 @@ def handle_payroll_review(employees):
             ),
             'Reimbursements': st.column_config.NumberColumn(
                 'Reimbursements',
-                help='Additional allowances',
+                help='Additional allowances or reimbursements (optional)',
                 min_value=0,
                 format="₦%d"
             ),
             'Other Deductions': st.column_config.NumberColumn(
                 'Other Deductions',
-                help='Additional deductions',
+                help='Additional deductions like loans or advances (optional)',
                 min_value=0,
                 format="₦%d"
             ),
             'Voluntary Pension': st.column_config.NumberColumn(
                 'Voluntary Pension',
-                help='Additional pension contribution',
+                help='Additional voluntary pension contribution (optional)',
                 min_value=0,
                 format="₦%d"
             )
@@ -791,7 +823,7 @@ def handle_payroll_calculation(employees, period_name):
             ),
             'Additional Pension': st.column_config.NumberColumn(
                 'Additional Pension',
-                help='Voluntary pension contribution',
+                help='Voluntary pension contribution (optional)',
                 min_value=0,
                 format="₦%d"
             ),
@@ -803,7 +835,7 @@ def handle_payroll_calculation(employees, period_name):
             ),
             'Other Deductions': st.column_config.NumberColumn(
                 'Other Deductions',
-                help='Additional deductions',
+                help='Additional deductions (optional)',
                 min_value=0,
                 format="₦%d"
             ),
@@ -860,7 +892,7 @@ def handle_payroll_calculation(employees, period_name):
                                 'pension_employer': row['Pension'] * 1.25,
                                 'paye_tax': row['PAYE'],
                                 'other_deductions': row['Other Deductions'],
-                                'reimbursements': 0
+                                'reimbursements': row['Reimbursements']
                             }
                             save_payroll_details(run_id, payroll_details)
 
@@ -923,6 +955,7 @@ def main():
         employee_management_page()
     else:
         payroll_processing_page()
+
 
 if __name__ == "__main__":
     main()
