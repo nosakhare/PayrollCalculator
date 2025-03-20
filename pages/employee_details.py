@@ -7,13 +7,12 @@ def render_page():
     st.title("Employee Details")
     
     # Check if employee_id is in query parameters
-    query_params = st.experimental_get_query_params()
-    if not query_params.get("id"):
+    if not st.query_params.get("id"):
         st.warning("No employee selected. Please select an employee from the employee list.")
         st.stop()
     
     # Get employee ID from query parameters
-    employee_id = int(query_params.get("id")[0])
+    employee_id = int(st.query_params.id)
     
     # Fetch employee data
     employee = get_employee_by_id(employee_id)
@@ -82,8 +81,8 @@ def display_employee_details(employee):
     st.markdown("---")
     if st.button("← Back to Employee List"):
         # Navigate back to employee list
-        st.experimental_set_query_params()  # Clear parameters
-        st.experimental_rerun()
+        st.query_params.clear()  # Clear parameters
+        st.rerun()
 
 def edit_employee_details(employee):
     """Provide form for editing employee details"""
@@ -177,11 +176,11 @@ def edit_employee_details(employee):
             if success:
                 st.success(message)
                 # Refresh the page with updated data
-                st.experimental_rerun()
+                st.rerun()
             else:
                 st.error(message)
     
     # Cancel button outside the form to return to the view tab
     if st.button("Cancel"):
         # Return to view tab
-        st.experimental_rerun()
+        st.rerun()

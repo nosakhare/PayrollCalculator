@@ -970,8 +970,7 @@ def employee_management_page():
 
 def main():
     # Check if we're viewing an employee detail page from query parameters
-    query_params = st.experimental_get_query_params()
-    is_employee_details = query_params.get("page") == ["employee_details"]
+    is_employee_details = st.query_params.get("page") == "employee_details"
     
     # Add sidebar navigation with descriptions
     with st.sidebar:

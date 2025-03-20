@@ -178,8 +178,9 @@ def render_page():
             # Check if any employees are selected for viewing
             if edited_df['View'].any():
                 selected_employee = edited_df[edited_df['View'] == True].iloc[0]
-                st.experimental_set_query_params(id=selected_employee['id'], page="employee_details")
-                st.experimental_rerun()
+                st.query_params.id = selected_employee['id']
+                st.query_params.page = "employee_details"
+                st.rerun()
 
             # Check if any employees are selected for deletion
             has_selected = edited_df['Delete'].any()
@@ -235,7 +236,7 @@ def render_page():
 
                             if success_count > 0:
                                 st.success(f"Successfully deleted {success_count} employee(s)")
-                                st.experimental_rerun()
+                                st.rerun()
                             if error_count > 0:
                                 st.error(f"Failed to delete {error_count} employee(s)")
                     st.markdown('</div>', unsafe_allow_html=True)
@@ -300,7 +301,7 @@ def render_page():
 
                             # Provide option to start over
                             if st.button("Upload Another File"):
-                                st.experimental_rerun()
+                                st.rerun()
 
             except Exception as e:
                 st.error(f"Error processing file: {str(e)}")
