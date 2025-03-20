@@ -34,9 +34,15 @@ st.markdown("""
         .stDeployButton {display:none;}
         /* Hide the top app tabs (from pages directory) */
         header {visibility: hidden !important;}
-        /* Hide the default tabs at the top */
+        /* Hide all Streamlit native navigation elements */
         [data-testid="stAppViewBlockContainer"] > div:first-child {display: none !important;}
         section.main > div:first-child {display: none !important;}
+        [data-testid="collapsedControl"] {display: none !important;}
+        /* Hide top-level navigation completely */
+        [data-testid="stDecoration"] {display: none !important;}
+        [data-testid="stToolbar"] {display: none !important;}
+        /* Hide any horizontal navbars */
+        .stHorizontalBlock[data-testid="stHorizontalBlock"] > div:first-child {display: none !important;}
         /* Add top padding to compensate for hidden header */
         .main .block-container {padding-top: 2rem !important;}
     </style>
