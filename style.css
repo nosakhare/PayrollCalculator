@@ -113,31 +113,6 @@ h1, h2, h3, h4, h5, h6 {
     border-bottom: 1px solid var(--border-color);
 }
 
-/* Style sidebar buttons */
-.stButton > button {
-    background-color: transparent;
-    color: var(--body-color);
-    text-align: left;
-    padding: 0.75rem 1rem;
-    margin: 0.25rem 0;
-    border-radius: 4px;
-    width: 100%;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.stButton > button:hover {
-    background-color: var(--primary-light);
-    box-shadow: none;
-}
-
-.stButton > button[data-active="true"] {
-    background-color: var(--primary-light);
-    color: var(--primary-color);
-    font-weight: 600;
-}
-
 .sidebar-logo svg {
     width: 24px;
     height: 24px;
