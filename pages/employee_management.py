@@ -228,7 +228,7 @@ def render_page():
                             error_count = 0
 
                             for _, row in selected_employees.iterrows():
-                                success, message = delete_employee(row['id'])
+                                success, message = delete_employee(row['id'], user_id)
                                 if success:
                                     success_count += 1
                                 else:
@@ -289,7 +289,7 @@ def render_page():
                     # Show confirmation button only if validation passes
                     if st.button("Confirm Upload"):
                         with st.spinner("Processing employee data..."):
-                            results = process_bulk_upload(df)
+                            results = process_bulk_upload(df, user_id)
 
                             if results['success']:
                                 st.success(results['message'])

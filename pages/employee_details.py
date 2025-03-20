@@ -4,6 +4,9 @@ from datetime import datetime
 from database import get_employee_by_id, add_employee
 
 def render_page():
+    # Get user ID from session state
+    user_id = st.session_state.user_id
+    
     # Check if employee_id is in query parameters
     if not st.query_params.get("id"):
         st.warning("No employee selected. Please select an employee from the employee list.")
@@ -13,10 +16,10 @@ def render_page():
     employee_id = int(st.query_params.id)
     
     # Fetch employee data
-    employee = get_employee_by_id(employee_id)
+    employee = get_employee_by_id(employee_id, user_id)
     
     if not employee:
-        st.error("Employee not found.")
+        st.error("Employee not found or you don't have permission to view this employee.")
         st.stop()
     
     # Display employee header
@@ -170,7 +173,7 @@ def edit_employee_details(employee):
             }
             
             # Update employee
-            success, message = add_employee(employee_data)
+            success, message = add_employee(employee_data, user_id)
             if success:
                 st.success(message)
                 # Refresh the page with updated data

@@ -79,7 +79,7 @@ def validate_csv(df):
 
     return {'valid': True, 'errors': []}
 
-def process_bulk_upload(df):
+def process_bulk_upload(df, user_id):
     """Process bulk employee upload with duplicate handling."""
     validation_result = validate_csv(df)
     if not validation_result['valid']:
@@ -115,7 +115,7 @@ def process_bulk_upload(df):
                 'account_number': str(row['Account Number'])
             }
 
-            success, message = add_employee(employee_data)
+            success, message = add_employee(employee_data, user_id)
             if success:
                 results['processed'] += 1
                 if "updated" in message.lower():
