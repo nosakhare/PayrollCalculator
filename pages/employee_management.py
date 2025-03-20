@@ -115,36 +115,32 @@ def render_page():
                     df['department'].str.contains(search, case=False, na=False)
                 ]
 
-            # Display employee table with key information
-            display_cols = ['staff_id', 'full_name', 'department', 'job_title', 'contract_type']
+            # Display employee table with key information and delete button
+            display_cols = ['id', 'staff_id', 'full_name', 'department', 'job_title', 'contract_type']
+
+            # Create a DataFrame for display
+            display_df = df[display_cols]
+
+            # Create metrics
             st.dataframe(
-                df[display_cols],
+                display_df.drop(['id'], axis=1),
                 hide_index=True,
                 column_config={
-                    "staff_id": "Staff ID",
-                    "full_name": "Name",
-                    "department": "Department",
-                    "job_title": "Position",
-                    "contract_type": "Contract Type"
+                    "staff_id": st.column_config.TextColumn("Staff ID"),
+                    "full_name": st.column_config.TextColumn("Name"),
+                    "department": st.column_config.TextColumn("Department"),
+                    "job_title": st.column_config.TextColumn("Position"),
+                    "contract_type": st.column_config.TextColumn("Contract Type")
                 }
             )
 
-            # Show delete options
-            st.subheader("Remove Employee")
-            col1, col2 = st.columns([3, 1])
-            with col1:
-                selected_employee = st.selectbox(
-                    "Select employee to remove",
-                    options=df['full_name'].tolist(),
-                    key="employee_to_delete"
-                )
-            with col2:
-                if st.button("Delete", type="primary"):
-                    employee_id = df[df['full_name'] == selected_employee]['id'].iloc[0]
-                    if st.button("⚠️ Confirm deletion", key="confirm_delete"):
-                        success, message = delete_employee(employee_id)
+            # Add delete buttons for each row
+            for idx, row in display_df.iterrows():
+                if st.button("🗑️", key=f"delete_{row['id']}", help=f"Delete {row['full_name']}"):
+                    if st.button("✓ Confirm", key=f"confirm_{row['id']}", type="primary"):
+                        success, message = delete_employee(row['id'])
                         if success:
-                            st.success(f"Deleted {selected_employee}")
+                            st.success(f"Deleted {row['full_name']}")
                             st.rerun()
                         else:
                             st.error(message)
@@ -153,7 +149,6 @@ def render_page():
 
     with tab3:
         st.subheader("Bulk Upload")
-
         # Instructions
         st.markdown("""
         ### Bulk Employee Upload Instructions
