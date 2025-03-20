@@ -107,36 +107,105 @@ def render_page():
             # Convert to DataFrame
             df = pd.DataFrame(employees)
 
-            # Create two columns for the table and delete buttons
-            col1, col2 = st.columns([4, 1])
+            # Add search functionality
+            search_term = st.text_input("🔍 Search employees by name, department, or ID", key="employee_search")
+            if search_term:
+                mask = (
+                    df['full_name'].str.contains(search_term, case=False, na=False) |
+                    df['department'].str.contains(search_term, case=False, na=False) |
+                    df['staff_id'].str.contains(search_term, case=False, na=False)
+                )
+                df = df[mask]
 
-            with col1:
-                # Display employee data without the ID column
-                display_df = df.drop(['id'], axis=1) if 'id' in df.columns else df
-                st.dataframe(display_df)
+            # Style the display
+            st.markdown("""
+            <style>
+            .delete-button {
+                background-color: #ff4b4b;
+                color: white;
+                padding: 0.5rem 1rem;
+                border-radius: 0.3rem;
+                border: none;
+                cursor: pointer;
+            }
+            .delete-button:hover {
+                background-color: #ff0000;
+            }
+            </style>
+            """, unsafe_allow_html=True)
 
-            with col2:
-                st.write("")  # Add some spacing
-                st.write("")  # Add some spacing
-                # Add delete buttons for each employee
-                for index, employee in df.iterrows():
-                    if st.button(f"🗑️ Delete", key=f"delete_{employee['id']}"):
-                        # Show confirmation dialog
-                        if st.session_state.get(f'confirm_delete_{employee["id"]}', False):
-                            # Delete was already confirmed
-                            success, message = delete_employee(employee['id'])
-                            if success:
-                                st.success(f"Successfully deleted {employee['full_name']}")
-                                # Refresh the page
-                                st.rerun()
-                            else:
-                                st.error(message)
-                        else:
-                            # Show confirmation message
-                            st.session_state[f'confirm_delete_{employee["id"]}'] = True
-                            st.warning(f"Are you sure you want to delete {employee['full_name']}? Click delete button again to confirm.")
+            # Create metrics
+            col_metrics = st.columns(3)
+            with col_metrics[0]:
+                st.metric("Total Employees", len(df))
+            with col_metrics[1]:
+                st.metric("Departments", len(df['department'].unique()))
+            with col_metrics[2]:
+                st.metric("Contract Types", len(df['contract_type'].unique()))
+
+            # Create expandable sections for each department
+            departments = sorted(df['department'].unique())
+            for dept in departments:
+                dept_df = df[df['department'] == dept]
+                with st.expander(f"📁 {dept} ({len(dept_df)} employees)"):
+                    # Create a clean display table
+                    display_cols = ['staff_id', 'full_name', 'job_title', 'email', 'contract_type']
+                    display_df = dept_df[display_cols].copy()
+
+                    # Rename columns for better display
+                    display_df.columns = ['Staff ID', 'Name', 'Position', 'Email', 'Contract Type']
+
+                    # Display the table
+                    st.dataframe(
+                        display_df,
+                        column_config={
+                            "Staff ID": st.column_config.TextColumn("Staff ID", width="medium"),
+                            "Name": st.column_config.TextColumn("Name", width="large"),
+                            "Position": st.column_config.TextColumn("Position", width="large"),
+                            "Email": st.column_config.TextColumn("Email", width="large"),
+                            "Contract Type": st.column_config.TextColumn("Contract Type", width="medium"),
+                        },
+                        hide_index=True
+                    )
+
+                    # Add delete buttons with better styling
+                    for idx, employee in dept_df.iterrows():
+                        col1, col2 = st.columns([4, 1])
+                        with col2:
+                            if st.button(
+                                "🗑️ Delete Employee",
+                                key=f"delete_{employee['id']}",
+                                type="primary",
+                                help=f"Delete {employee['full_name']}"
+                            ):
+                                # Use a more prominent confirmation dialog
+                                st.warning(
+                                    f"""
+                                    ⚠️ Confirm Deletion
+
+                                    You are about to delete the following employee:
+                                    - Name: {employee['full_name']}
+                                    - Staff ID: {employee['staff_id']}
+                                    - Department: {employee['department']}
+
+                                    This action cannot be undone.
+                                    """
+                                )
+                                col_confirm, col_cancel = st.columns(2)
+                                with col_confirm:
+                                    if st.button("✓ Confirm Delete", key=f"confirm_{employee['id']}", type="primary"):
+                                        success, message = delete_employee(employee['id'])
+                                        if success:
+                                            st.success(f"✅ Successfully deleted {employee['full_name']}")
+                                            st.balloons()
+                                            st.rerun()
+                                        else:
+                                            st.error(f"❌ Error: {message}")
+                                with col_cancel:
+                                    if st.button("✗ Cancel", key=f"cancel_{employee['id']}"):
+                                        st.rerun()
         else:
-            st.info("No employees found in the system.")
+            st.info("👥 No employees found in the system. Add employees using the 'Add Employee' tab.")
 
     with tab3:
         st.subheader("Bulk Upload")
