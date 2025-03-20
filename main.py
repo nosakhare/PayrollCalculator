@@ -524,8 +524,11 @@ def salary_calculator_page():
         """)
 
 def payroll_processing_page():
-    # Get all employees
-    employees = get_all_employees()
+    # Get user ID from session state
+    user_id = st.session_state.user_id
+    
+    # Get all employees for the current user
+    employees = get_all_employees(user_id)
     if not employees:
         st.warning("No employees found. Please add employees in the Employee Management section first.")
         return
@@ -920,7 +923,7 @@ def employee_management_page():
             col1, col2 = st.columns(2)
 
             with col1:
-                staff_id = st.text_input("Staff ID", value=generate_staff_id(), disabled=True, key="staff_id_main")
+                staff_id = st.text_input("Staff ID", value=generate_staff_id(user_id), disabled=True, key="staff_id_main")
                 email = st.text_input("Email *", key="email_main")
                 full_name = st.text_input("Full Name *", key="full_name_main")
                 department = st.text_input("Department *", key="department_main")
@@ -992,7 +995,7 @@ def employee_management_page():
                 'account_number': account_number
             }
 
-            success, message = add_employee(employee_data)
+            success, message = add_employee(employee_data, user_id)
             if success:
                 st.success(message)
             else:
@@ -1000,7 +1003,7 @@ def employee_management_page():
 
     with tab2:
         st.subheader("Employee List")
-        employees = get_all_employees()
+        employees = get_all_employees(user_id)
         if employees:
             df = pd.DataFrame(employees)
             st.dataframe(df)
