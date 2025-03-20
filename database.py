@@ -4,108 +4,138 @@ import bcrypt
 from datetime import datetime
 
 def init_db():
+    # First, check if we need to run the migration
+    db_exists = os.path.exists('payroll.db')
+    
     conn = sqlite3.connect('payroll.db')
     c = conn.cursor()
     
-    # Create users table for authentication
-    c.execute('''
-        CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT UNIQUE NOT NULL,
-            email TEXT UNIQUE NOT NULL,
-            password_hash TEXT NOT NULL,
-            full_name TEXT NOT NULL,
-            company_name TEXT,
-            created_at TEXT DEFAULT CURRENT_TIMESTAMP
-        )
-    ''')
+    # Check if migration is needed (if tables exist but don't have user_id column)
+    needs_migration = False
+    
+    if db_exists:
+        try:
+            # Check if employees table exists without user_id column
+            c.execute("PRAGMA table_info(employees)")
+            columns = [column[1] for column in c.fetchall()]
+            
+            if "employees" in [table[0] for table in c.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()]:
+                if "user_id" not in columns:
+                    needs_migration = True
+        except:
+            pass
+    
+    # If migration is needed, run it from the migration script
+    if needs_migration:
+        conn.close()
+        from migrate_db import migrate_database
+        migrate_database()
+        return
+    
+    # Otherwise, create the tables normally
+    try:
+        # Create users table for authentication
+        c.execute('''
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT UNIQUE NOT NULL,
+                email TEXT UNIQUE NOT NULL,
+                password_hash TEXT NOT NULL,
+                full_name TEXT NOT NULL,
+                company_name TEXT,
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
 
-    # Create employees table with user_id foreign key
-    c.execute('''
-        CREATE TABLE IF NOT EXISTS employees (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER NOT NULL,
-            staff_id TEXT NOT NULL,
-            email TEXT NOT NULL,
-            full_name TEXT NOT NULL,
-            department TEXT NOT NULL,
-            job_title TEXT NOT NULL,
-            annual_gross_pay REAL NOT NULL,
-            start_date TEXT NOT NULL,
-            end_date TEXT,
-            contract_type TEXT NOT NULL,
-            reimbursements REAL DEFAULT 0,
-            other_deductions REAL DEFAULT 0,
-            voluntary_pension REAL DEFAULT 0,
-            rsa_pin TEXT,
-            account_number TEXT NOT NULL,
-            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (user_id) REFERENCES users (id),
-            UNIQUE (user_id, staff_id),
-            UNIQUE (user_id, email)
-        )
-    ''')
+        # Create employees table with user_id foreign key
+        c.execute('''
+            CREATE TABLE IF NOT EXISTS employees (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                staff_id TEXT NOT NULL,
+                email TEXT NOT NULL,
+                full_name TEXT NOT NULL,
+                department TEXT NOT NULL,
+                job_title TEXT NOT NULL,
+                annual_gross_pay REAL NOT NULL,
+                start_date TEXT NOT NULL,
+                end_date TEXT,
+                contract_type TEXT NOT NULL,
+                reimbursements REAL DEFAULT 0,
+                other_deductions REAL DEFAULT 0,
+                voluntary_pension REAL DEFAULT 0,
+                rsa_pin TEXT,
+                account_number TEXT NOT NULL,
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users (id),
+                UNIQUE (user_id, staff_id),
+                UNIQUE (user_id, email)
+            )
+        ''')
 
-    # Create payroll_periods table with user_id
-    c.execute('''
-        CREATE TABLE IF NOT EXISTS payroll_periods (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER NOT NULL,
-            period_name TEXT NOT NULL,
-            start_date TEXT NOT NULL,
-            end_date TEXT NOT NULL,
-            status TEXT DEFAULT 'active' CHECK(status IN ('active', 'closed')),
-            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-            closed_at TEXT,
-            FOREIGN KEY (user_id) REFERENCES users (id),
-            UNIQUE (user_id, period_name)
-        )
-    ''')
+        # Create payroll_periods table with user_id
+        c.execute('''
+            CREATE TABLE IF NOT EXISTS payroll_periods (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                period_name TEXT NOT NULL,
+                start_date TEXT NOT NULL,
+                end_date TEXT NOT NULL,
+                status TEXT DEFAULT 'active' CHECK(status IN ('active', 'closed')),
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                closed_at TEXT,
+                FOREIGN KEY (user_id) REFERENCES users (id),
+                UNIQUE (user_id, period_name)
+            )
+        ''')
 
-    # Create payroll_runs table with user_id
-    c.execute('''
-        CREATE TABLE IF NOT EXISTS payroll_runs (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER NOT NULL,
-            period_id INTEGER NOT NULL,
-            run_date TEXT NOT NULL,
-            status TEXT DEFAULT 'draft' CHECK(status IN ('draft', 'pending_approval', 'approved', 'rejected')),
-            approved_by TEXT,
-            approved_at TEXT,
-            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (user_id) REFERENCES users (id),
-            FOREIGN KEY (period_id) REFERENCES payroll_periods (id)
-        )
-    ''')
+        # Create payroll_runs table with user_id
+        c.execute('''
+            CREATE TABLE IF NOT EXISTS payroll_runs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                period_id INTEGER NOT NULL,
+                run_date TEXT NOT NULL,
+                status TEXT DEFAULT 'draft' CHECK(status IN ('draft', 'pending_approval', 'approved', 'rejected')),
+                approved_by TEXT,
+                approved_at TEXT,
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users (id),
+                FOREIGN KEY (period_id) REFERENCES payroll_periods (id)
+            )
+        ''')
 
-    # Create payroll_details table
-    c.execute('''
-        CREATE TABLE IF NOT EXISTS payroll_details (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            run_id INTEGER NOT NULL,
-            employee_id INTEGER NOT NULL,
-            gross_pay REAL NOT NULL,
-            net_pay REAL NOT NULL,
-            basic_salary REAL NOT NULL,
-            housing REAL NOT NULL,
-            transport REAL NOT NULL,
-            utility REAL NOT NULL,
-            meal REAL NOT NULL,
-            clothing REAL NOT NULL,
-            pension_employee REAL NOT NULL,
-            pension_employer REAL NOT NULL,
-            pension_voluntary REAL NOT NULL,
-            paye_tax REAL NOT NULL,
-            other_deductions REAL NOT NULL,
-            reimbursements REAL NOT NULL,
-            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (run_id) REFERENCES payroll_runs (id),
-            FOREIGN KEY (employee_id) REFERENCES employees (id)
-        )
-    ''')
+        # Create payroll_details table
+        c.execute('''
+            CREATE TABLE IF NOT EXISTS payroll_details (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                run_id INTEGER NOT NULL,
+                employee_id INTEGER NOT NULL,
+                gross_pay REAL NOT NULL,
+                net_pay REAL NOT NULL,
+                basic_salary REAL NOT NULL,
+                housing REAL NOT NULL,
+                transport REAL NOT NULL,
+                utility REAL NOT NULL,
+                meal REAL NOT NULL,
+                clothing REAL NOT NULL,
+                pension_employee REAL NOT NULL,
+                pension_employer REAL NOT NULL,
+                pension_voluntary REAL NOT NULL,
+                paye_tax REAL NOT NULL,
+                other_deductions REAL NOT NULL,
+                reimbursements REAL NOT NULL,
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (run_id) REFERENCES payroll_runs (id),
+                FOREIGN KEY (employee_id) REFERENCES employees (id)
+            )
+        ''')
 
-    conn.commit()
-    conn.close()
+        conn.commit()
+    except Exception as e:
+        print(f"Database initialization error: {str(e)}")
+    finally:
+        conn.close()
 
 # Add functions for payroll period management
 def create_payroll_period(user_id, period_name, start_date, end_date):
