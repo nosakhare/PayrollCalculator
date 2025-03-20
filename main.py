@@ -62,55 +62,44 @@ pages = {
     "Payroll Processing": {"icon": "payroll", "section": "PAYROLL"}
 }
 
-# Sidebar customization
-st.sidebar.markdown(f"""
-    <div class="sidebar-logo">
-        {get_icon_html("payroll")}
-        <span>Nigerian Payroll System</span>
-    </div>
-""", unsafe_allow_html=True)
+# Simple sidebar title
+st.sidebar.title("Nigerian Payroll System")
 
-# Create separate navigation sections for clarity
+# Add section headers
 st.sidebar.markdown('<div class="sidebar-section-header">MAIN</div>', unsafe_allow_html=True)
 
-# Main navigation items - using a cleaner approach
+# Simpler navigation implementation - main section
 for page_name, page_info in pages.items():
     if page_info["section"] == "MAIN":
-        active_class = "active" if st.session_state.page == page_name else ""
-        # Create a unique key for each button to avoid conflicts
-        btn_key = f"nav_btn_{page_name.replace(' ', '_').lower()}"
+        # Determine if this is the active page
+        is_active = st.session_state.page == page_name
+        button_style = "primary" if is_active else "secondary"
         
-        # Custom styling for the nav item with icon
-        st.sidebar.markdown(f"""
-            <div class="sidebar-nav-item {active_class}">
-                {get_icon_html(page_info["icon"])} {page_name}
-            </div>
-        """, unsafe_allow_html=True)
-        
-        # Invisible button over the nav item that handles the click
-        if st.sidebar.button("", key=btn_key):
+        # Use standard buttons with icons
+        icon = page_info["icon"]
+        if st.sidebar.button(f"{page_name}", 
+                            key=f"btn_{page_name.lower().replace(' ', '_')}",
+                            use_container_width=True,
+                            type=button_style):
             st.session_state.page = page_name
             st.rerun()
 
-# Payroll section
+# Add payroll section header
 st.sidebar.markdown('<div class="sidebar-section-header">PAYROLL</div>', unsafe_allow_html=True)
 
 # Payroll navigation items
 for page_name, page_info in pages.items():
     if page_info["section"] == "PAYROLL":
-        active_class = "active" if st.session_state.page == page_name else ""
-        # Create a unique key for each button
-        btn_key = f"nav_btn_{page_name.replace(' ', '_').lower()}"
+        # Determine if this is the active page
+        is_active = st.session_state.page == page_name
+        button_style = "primary" if is_active else "secondary"
         
-        # Custom styling for the nav item with icon
-        st.sidebar.markdown(f"""
-            <div class="sidebar-nav-item {active_class}">
-                {get_icon_html(page_info["icon"])} {page_name}
-            </div>
-        """, unsafe_allow_html=True)
-        
-        # Invisible button over the nav item that handles the click
-        if st.sidebar.button("", key=btn_key):
+        # Use standard buttons with icons
+        icon = page_info["icon"]
+        if st.sidebar.button(f"{page_name}", 
+                            key=f"btn_payroll_{page_name.lower().replace(' ', '_')}",
+                            use_container_width=True,
+                            type=button_style):
             st.session_state.page = page_name
             st.rerun()
 
