@@ -1,39 +1,36 @@
-/* Main styles for Nigerian Payroll System */
+/* Modern styling for Nigerian Payroll System */
 
-/* Color System */
 :root {
-    --primary-color: #0a58ca;
-    --primary-light: #e7f0ff;
-    --secondary-color: #6c757d;
-    --success-color: #198754;
-    --danger-color: #dc3545;
-    --warning-color: #ffc107;
-    --info-color: #0dcaf0;
-    --dark-color: #343a40;
-    --light-color: #f8f9fa;
-    --body-color: #212529;
-    --border-color: #dee2e6;
-    --bg-light: #f8f9fa;
+    --primary-color: #2563eb;
+    --primary-light: #dbeafe;
+    --secondary-color: #64748b;
+    --success-color: #22c55e;
+    --danger-color: #ef4444;
+    --warning-color: #f59e0b;
+    --info-color: #0ea5e9;
+    --dark-color: #1e293b;
+    --light-color: #f8fafc;
+    --border-color: #e2e8f0;
     --bg-white: #ffffff;
 }
 
-/* Typography */
-body {
-    font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    color: var(--body-color);
+/* Base styles */
+.stApp {
+    background-color: #f8fafc;
 }
 
+/* Typography */
 h1, h2, h3, h4, h5, h6 {
-    margin-bottom: 1rem;
+    color: var(--dark-color);
     font-weight: 600;
-    line-height: 1.2;
+    letter-spacing: -0.025em;
 }
 
 .text-title {
     font-size: 2rem;
     font-weight: 700;
     margin-bottom: 1.5rem;
-    color: var(--primary-color);
+    color: var(--dark-color);
 }
 
 .text-subtitle {
@@ -58,19 +55,18 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Buttons */
 .stButton > button {
+    border-radius: 0.5rem;
+    padding: 0.625rem 1.25rem;
+    font-weight: 500;
+    transition: all 0.2s;
+    border: none;
     background-color: var(--primary-color);
     color: white;
-    border: none;
-    border-radius: 4px;
-    padding: 0.5rem 1rem;
-    font-weight: 500;
-    margin-top: 0.5rem;
-    transition: all 0.2s ease;
 }
 
 .stButton > button:hover {
-    background-color: #0d6efd;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 .stButton > button:disabled {
@@ -79,24 +75,21 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* Form Elements */
-.stTextInput > div, .stNumberInput > div, .stSelectbox > div, .stDateInput > div {
-    margin-bottom: 1rem;
-}
-
-.stTextInput > div > div > input, 
-.stNumberInput > div > div > input,
-.stDateInput > div > div > input {
-    border-radius: 4px;
+[data-testid="stTextInput"] input,
+[data-testid="stNumberInput"] input,
+[data-testid="stDateInput"] input {
+    border-radius: 0.5rem;
     border: 1px solid var(--border-color);
-    padding: 0.5rem;
-    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    padding: 0.75rem 1rem;
+    transition: all 0.2s;
+    background-color: white;
 }
 
-.stTextInput > div > div > input:focus, 
-.stNumberInput > div > div > input:focus,
-.stDateInput > div > div > input:focus {
+[data-testid="stTextInput"] input:focus,
+[data-testid="stNumberInput"] input:focus,
+[data-testid="stDateInput"] input:focus {
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    box-shadow: 0 0 0 2px var(--primary-light);
 }
 
 .stSelectbox > div > div > div {
@@ -167,11 +160,12 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Card styling */
 .card {
-    background-color: var(--bg-white);
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    background-color: white;
+    border-radius: 1rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     padding: 1.5rem;
     margin-bottom: 1.5rem;
+    border: 1px solid var(--border-color);
 }
 
 .card-header {
@@ -185,16 +179,66 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Tables */
 .stDataFrame {
+    border-radius: 0.5rem;
+    overflow: hidden;
+    border: 1px solid var(--border-color);
     margin: 1rem 0;
 }
 
+.stDataFrame td {
+    padding: 1rem;
+}
+
+
 /* Notifications */
 .notification {
-    display: flex;
-    align-items: flex-start;
+    border-radius: 0.5rem;
     padding: 1rem;
-    border-radius: 4px;
     margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    border: 1px solid transparent;
+}
+
+.notification-success {
+    background-color: #f0fdf4;
+    border-color: #86efac;
+    color: #166534;
+}
+
+.notification-success svg {
+    fill: #198754;
+}
+
+.notification-error {
+    background-color: #fef2f2;
+    border-color: #fca5a5;
+    color: #991b1b;
+}
+
+.notification-error svg {
+    fill: #dc3545;
+}
+
+.notification-warning {
+    background-color: #fffbeb;
+    border-color: #fcd34d;
+    color: #92400e;
+}
+
+.notification-warning svg {
+    fill: #ffc107;
+}
+
+.notification-info {
+    background-color: #f0f9ff;
+    border-color: #7dd3fc;
+    color: #075985;
+}
+
+.notification-info svg {
+    fill: #0dcaf0;
 }
 
 .notification svg {
@@ -204,45 +248,6 @@ h1, h2, h3, h4, h5, h6 {
     margin-top: 0.1rem;
 }
 
-.notification-success {
-    background-color: #d1e7dd;
-    color: #0f5132;
-    border-left: 4px solid #198754;
-}
-
-.notification-success svg {
-    fill: #198754;
-}
-
-.notification-error {
-    background-color: #f8d7da;
-    color: #842029;
-    border-left: 4px solid #dc3545;
-}
-
-.notification-error svg {
-    fill: #dc3545;
-}
-
-.notification-warning {
-    background-color: #fff3cd;
-    color: #664d03;
-    border-left: 4px solid #ffc107;
-}
-
-.notification-warning svg {
-    fill: #ffc107;
-}
-
-.notification-info {
-    background-color: #cff4fc;
-    color: #055160;
-    border-left: 4px solid #0dcaf0;
-}
-
-.notification-info svg {
-    fill: #0dcaf0;
-}
 
 /* Progress Bar */
 .progress-bar {
@@ -336,27 +341,30 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Tabs styling */
 .stTabs [data-baseweb="tab-list"] {
-    gap: 2px;
+    gap: 0.5rem;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.5rem;
 }
 
 .stTabs [data-baseweb="tab"] {
-    height: 40px;
-    padding: 0 16px;
-    background-color: #f8f9fa;
-    border-radius: 4px 4px 0 0;
+    border-radius: 0.5rem;
+    padding: 0.5rem 1rem;
+    font-weight: 500;
 }
 
 .stTabs [aria-selected="true"] {
-    background-color: white;
-    border-top: 2px solid var(--primary-color);
-    font-weight: 600;
+    background-color: var(--primary-light);
+    color: var(--primary-color);
+    border: none;
 }
 
 /* Metrics */
 [data-testid="stMetric"] {
-    background-color: var(--bg-light);
-    padding: 1rem;
-    border-radius: 8px;
+    background-color: white;
+    padding: 1.5rem;
+    border-radius: 1rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    border: 1px solid var(--border-color);
     margin-bottom: 1rem;
 }
 
@@ -366,7 +374,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 [data-testid="stMetricValue"] {
-    font-size: 1.5rem;
+    font-size: 1.875rem;
     font-weight: 700;
     color: var(--primary-color);
 }
@@ -468,9 +476,34 @@ h1, h2, h3, h4, h5, h6 {
     .card-grid {
         grid-template-columns: 1fr;
     }
-    
+
     .stTabs [data-baseweb="tab"] {
         padding: 0 10px;
         font-size: 0.875rem;
     }
+    .text-title {
+        font-size: 1.5rem;
+    }
+
+    .card {
+        padding: 1rem;
+    }
+
+    [data-testid="stMetric"] {
+        padding: 1rem;
+    }
+}
+
+/* Progress and Loading */
+.stProgress > div > div {
+    background-color: var(--primary-color);
+}
+
+[data-testid="stSpinner"] {
+    border-color: var(--primary-color);
+}
+
+[data-testid="stSidebar"] {
+    background-color: white;
+    border-right: 1px solid var(--border-color);
 }
