@@ -218,7 +218,7 @@ def render_page():
                 delete_button = st.empty()
                 with st.container():
                     st.markdown('<div class="delete-button">', unsafe_allow_html=True)
-                    delete_clicked = delete_button.button("Delete Selected Employees", disabled=not has_selected)
+                    delete_clicked = delete_button.button("Delete Selected Employees", disabled=not has_selected, key="delete_selected_button")
                     print(f"DEBUG UI: Delete button clicked: {delete_clicked}")
                     if delete_clicked:
                         print(f"DEBUG UI: Has selected employees: {has_selected}")
@@ -228,7 +228,8 @@ def render_page():
                         for _, row in selected_employees.iterrows():
                             st.write(f"- {row['full_name']} ({row['staff_id']}) [ID: {row['id']}]")
 
-                        confirm_delete = st.button("✓ Confirm Deletion", type="primary")
+                        # Use a unique key for the confirm deletion button to avoid conflicts
+                        confirm_delete = st.button("✓ Confirm Deletion", type="primary", key="confirm_delete_button")
                         print(f"DEBUG UI: Confirm deletion button pressed: {confirm_delete}")
                         if confirm_delete:
                             print(f"DEBUG UI: Starting employee deletion process")

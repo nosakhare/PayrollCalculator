@@ -396,8 +396,8 @@ def delete_employee(employee_id, user_id):
         print(f"DEBUG: Found employee: {employee}")
         
         # Check if the employee belongs to this user
-        if employee and employee[3] != user_id:
-            print(f"DEBUG: Permission denied. Employee has user_id={employee[3]}, but requester has user_id={user_id}")
+        if employee and int(employee[3]) != int(user_id):
+            print(f"DEBUG: Permission denied. Employee has user_id={employee[3]} ({type(employee[3])}), but requester has user_id={user_id} ({type(user_id)})")
             return False, "You don't have permission to delete this employee"
 
         # Delete the employee (ensure to check user_id to maintain data isolation)
