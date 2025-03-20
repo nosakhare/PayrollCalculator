@@ -1,17 +1,32 @@
 import sqlite3
 import os
+import bcrypt
 from datetime import datetime
 
 def init_db():
     conn = sqlite3.connect('payroll.db')
     c = conn.cursor()
+    
+    # Create users table for authentication
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT UNIQUE NOT NULL,
+            email TEXT UNIQUE NOT NULL,
+            password_hash TEXT NOT NULL,
+            full_name TEXT NOT NULL,
+            company_name TEXT,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
 
-    # Create employees table (existing)
+    # Create employees table with user_id foreign key
     c.execute('''
         CREATE TABLE IF NOT EXISTS employees (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            staff_id TEXT UNIQUE NOT NULL,
-            email TEXT UNIQUE NOT NULL,
+            user_id INTEGER NOT NULL,
+            staff_id TEXT NOT NULL,
+            email TEXT NOT NULL,
             full_name TEXT NOT NULL,
             department TEXT NOT NULL,
             job_title TEXT NOT NULL,
@@ -24,33 +39,41 @@ def init_db():
             voluntary_pension REAL DEFAULT 0,
             rsa_pin TEXT,
             account_number TEXT NOT NULL,
-            created_at TEXT DEFAULT CURRENT_TIMESTAMP
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users (id),
+            UNIQUE (user_id, staff_id),
+            UNIQUE (user_id, email)
         )
     ''')
 
-    # Create payroll_periods table
+    # Create payroll_periods table with user_id
     c.execute('''
         CREATE TABLE IF NOT EXISTS payroll_periods (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
             period_name TEXT NOT NULL,
             start_date TEXT NOT NULL,
             end_date TEXT NOT NULL,
             status TEXT DEFAULT 'active' CHECK(status IN ('active', 'closed')),
             created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-            closed_at TEXT
+            closed_at TEXT,
+            FOREIGN KEY (user_id) REFERENCES users (id),
+            UNIQUE (user_id, period_name)
         )
     ''')
 
-    # Create payroll_runs table
+    # Create payroll_runs table with user_id
     c.execute('''
         CREATE TABLE IF NOT EXISTS payroll_runs (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
             period_id INTEGER NOT NULL,
             run_date TEXT NOT NULL,
             status TEXT DEFAULT 'draft' CHECK(status IN ('draft', 'pending_approval', 'approved', 'rejected')),
             approved_by TEXT,
             approved_at TEXT,
             created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users (id),
             FOREIGN KEY (period_id) REFERENCES payroll_periods (id)
         )
     ''')
@@ -312,18 +335,18 @@ def generate_staff_id():
 
 # Add this function after get_all_employees()
 
-def delete_employee(employee_id):
+def delete_employee(employee_id, user_id):
     """Delete an employee from the database"""
     conn = sqlite3.connect('payroll.db')
     c = conn.cursor()
 
     try:
-        # First check if employee exists
-        c.execute('SELECT staff_id FROM employees WHERE id = ?', (employee_id,))
+        # First check if employee exists and belongs to the user
+        c.execute('SELECT staff_id FROM employees WHERE id = ? AND user_id = ?', (employee_id, user_id))
         employee = c.fetchone()
 
         if not employee:
-            return False, "Employee not found"
+            return False, "Employee not found or you don't have permission to delete this employee"
 
         # Delete the employee
         c.execute('DELETE FROM employees WHERE id = ?', (employee_id,))
@@ -331,5 +354,77 @@ def delete_employee(employee_id):
         return True, "Employee deleted successfully"
     except Exception as e:
         return False, f"Error deleting employee: {str(e)}"
+    finally:
+        conn.close()
+
+# User Authentication Functions
+def register_user(username, email, password, full_name, company_name=None):
+    """Register a new user"""
+    conn = sqlite3.connect('payroll.db')
+    c = conn.cursor()
+
+    try:
+        # Hash the password
+        password_bytes = password.encode('utf-8')
+        salt = bcrypt.gensalt()
+        hashed_password = bcrypt.hashpw(password_bytes, salt)
+        
+        # Insert the new user
+        c.execute('''
+            INSERT INTO users (username, email, password_hash, full_name, company_name)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (username, email, hashed_password.decode('utf-8'), full_name, company_name))
+        
+        user_id = c.lastrowid
+        conn.commit()
+        return True, user_id
+    except sqlite3.IntegrityError as e:
+        if "username" in str(e):
+            return False, "Username already exists"
+        elif "email" in str(e):
+            return False, "Email already exists"
+        return False, f"Registration error: {str(e)}"
+    except Exception as e:
+        return False, f"Registration error: {str(e)}"
+    finally:
+        conn.close()
+
+def login_user(username, password):
+    """Authenticate a user"""
+    conn = sqlite3.connect('payroll.db')
+    conn.row_factory = sqlite3.Row
+    c = conn.cursor()
+
+    try:
+        c.execute('SELECT * FROM users WHERE username = ?', (username,))
+        user = c.fetchone()
+        
+        if not user:
+            return False, "Invalid username or password"
+        
+        # Verify password
+        stored_password = user['password_hash'].encode('utf-8')
+        if bcrypt.checkpw(password.encode('utf-8'), stored_password):
+            return True, dict(user)
+        else:
+            return False, "Invalid username or password"
+    except Exception as e:
+        return False, f"Login error: {str(e)}"
+    finally:
+        conn.close()
+
+def get_user_by_id(user_id):
+    """Get user information by ID"""
+    conn = sqlite3.connect('payroll.db')
+    conn.row_factory = sqlite3.Row
+    c = conn.cursor()
+
+    try:
+        c.execute('SELECT id, username, email, full_name, company_name, created_at FROM users WHERE id = ?', (user_id,))
+        user = c.fetchone()
+        return dict(user) if user else None
+    except Exception as e:
+        print(f"Error getting user: {str(e)}")
+        return None
     finally:
         conn.close()
