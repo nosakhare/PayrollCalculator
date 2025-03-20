@@ -62,24 +62,57 @@ pages = {
     "Payroll Processing": {"icon": "payroll", "section": "PAYROLL"}
 }
 
-# Navigation section headers
+# Sidebar customization
+st.sidebar.markdown(f"""
+    <div class="sidebar-logo">
+        {get_icon_html("payroll")}
+        <span>Nigerian Payroll System</span>
+    </div>
+""", unsafe_allow_html=True)
+
+# Create separate navigation sections for clarity
 st.sidebar.markdown('<div class="sidebar-section-header">MAIN</div>', unsafe_allow_html=True)
-st.sidebar.markdown('<div class="sidebar-section-header" style="margin-top: 20px;">PAYROLL</div>', unsafe_allow_html=True)
 
-# Create styled navigation with a native Streamlit radio component
-page_icons = {page_name: get_icon_html(page_info["icon"]) for page_name, page_info in pages.items()}
+# Main navigation items - using a cleaner approach
+for page_name, page_info in pages.items():
+    if page_info["section"] == "MAIN":
+        active_class = "active" if st.session_state.page == page_name else ""
+        # Create a unique key for each button to avoid conflicts
+        btn_key = f"nav_btn_{page_name.replace(' ', '_').lower()}"
+        
+        # Custom styling for the nav item with icon
+        st.sidebar.markdown(f"""
+            <div class="sidebar-nav-item {active_class}">
+                {get_icon_html(page_info["icon"])} {page_name}
+            </div>
+        """, unsafe_allow_html=True)
+        
+        # Invisible button over the nav item that handles the click
+        if st.sidebar.button("", key=btn_key):
+            st.session_state.page = page_name
+            st.rerun()
 
-# Use radio buttons which are easier to style
-selected = st.sidebar.radio(
-    "Navigation",
-    options=list(pages.keys()),
-    format_func=lambda x: f"{page_icons.get(x, '')} {x}",
-    label_visibility="collapsed",
-    index=list(pages.keys()).index(st.session_state.page),
-    key="nav_radio"
-)
-# Update session state
-st.session_state.page = selected
+# Payroll section
+st.sidebar.markdown('<div class="sidebar-section-header">PAYROLL</div>', unsafe_allow_html=True)
+
+# Payroll navigation items
+for page_name, page_info in pages.items():
+    if page_info["section"] == "PAYROLL":
+        active_class = "active" if st.session_state.page == page_name else ""
+        # Create a unique key for each button
+        btn_key = f"nav_btn_{page_name.replace(' ', '_').lower()}"
+        
+        # Custom styling for the nav item with icon
+        st.sidebar.markdown(f"""
+            <div class="sidebar-nav-item {active_class}">
+                {get_icon_html(page_info["icon"])} {page_name}
+            </div>
+        """, unsafe_allow_html=True)
+        
+        # Invisible button over the nav item that handles the click
+        if st.sidebar.button("", key=btn_key):
+            st.session_state.page = page_name
+            st.rerun()
 
 def salary_calculator_page():
     # Initialize session state

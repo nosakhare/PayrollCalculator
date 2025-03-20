@@ -443,50 +443,24 @@ h1, h2, h3, h4, h5, h6 {
     background-color: var(--primary-light);
 }
 
-/* Style the radio buttons for navigation to look like our nav menu */
-[data-testid="stRadio"] > div {
-    margin-top: -20px; /* Move up to align with headers */
+/* Fix navigation button styling */
+.sidebar-nav-item + div {
+    margin-top: -60px !important; /* Position the button on top of the styled item */
+    margin-bottom: 30px !important;
+    opacity: 0 !important; /* Make the button invisible but clickable */
 }
 
-[data-testid="stRadio"] label {
-    cursor: pointer;
-    padding: 0.5rem;
-    margin: 0.25rem 0;
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
+/* Make the button container take up full width */
+.sidebar-nav-item + div > button {
+    width: 100% !important;
+    background-color: transparent !important;
+    height: 40px !important;
+    margin: 0 !important;
 }
 
-[data-testid="stRadio"] label:hover {
-    background-color: var(--primary-light);
-}
-
-/* Hide the actual radio input */
-[data-testid="stRadio"] input {
-    position: absolute;
-    opacity: 0;
-    cursor: pointer;
-    height: 0;
-    width: 0;
-}
-
-/* Style the selected radio label */
-[data-testid="stRadio"] input:checked + div {
-    background-color: var(--primary-light);
-    color: var(--primary-color);
-    font-weight: 600;
-}
-
-/* Make SVGs in radio labels larger */
-[data-testid="stRadio"] svg {
-    width: 20px;
-    height: 20px;
-    margin-right: 0.5rem;
-}
-
-/* Hide standard radio styling */
-[data-testid="stRadio"] > div:first-child {
-    display: none;
+/* Hide the button text but keep it clickable */
+.sidebar-nav-item + div > button > div {
+    opacity: 0 !important;
 }
 
 /* Responsive adjustments */
