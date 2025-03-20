@@ -72,8 +72,7 @@ pages = {
     "Employee Management": {"icon": "employee", "section": "MAIN"},
     "Salary Calculator": {"icon": "calculator", "section": "MAIN"},
     "Payroll Processing": {"icon": "payroll", "section": "PAYROLL"},
-    "My Profile": {"icon": "profile", "section": "USER"},
-    "Debug": {"icon": "debug", "section": "DEVELOPER"}
+    "My Profile": {"icon": "profile", "section": "USER"}
 }
 
 # Simple sidebar title - only add this once
@@ -142,24 +141,7 @@ for page_name, page_info in pages.items():
             st.session_state.page = page_name
             st.rerun()
 
-# Add developer section header
-st.sidebar.markdown('<div class="sidebar-section-header">DEVELOPER</div>', unsafe_allow_html=True)
 
-# Developer navigation items
-for page_name, page_info in pages.items():
-    if page_info["section"] == "DEVELOPER":
-        # Determine if this is the active page
-        is_active = st.session_state.page == page_name
-        button_style = "primary" if is_active else "secondary"
-        
-        # Use standard buttons with icons
-        icon = page_info["icon"]
-        if st.sidebar.button(f"{page_name}", 
-                            key=f"btn_dev_{page_name.lower().replace(' ', '_')}",
-                            use_container_width=True,
-                            type=button_style):
-            st.session_state.page = page_name
-            st.rerun()
 
 def salary_calculator_page():
     # Initialize session state
