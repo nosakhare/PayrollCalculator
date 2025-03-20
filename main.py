@@ -9,6 +9,8 @@ from payslip_generator import PayslipGenerator
 import os
 from pages.employee_management import render_page as render_employee_management
 from pages.employee_details import render_page as render_employee_details
+from sidebar_icons import get_icon_html
+from notifications import success_message, error_message, warning_message, info_message, loading_spinner, progress_bar, step_indicator, workflow_buttons
 
 # Must be the first Streamlit command
 st.set_page_config(
@@ -16,6 +18,10 @@ st.set_page_config(
     page_icon="💰",
     layout="wide"
 )
+
+# Load CSS
+with open("style.css") as f:
+    st.markdown(f"""<style>{f.read()}</style>""", unsafe_allow_html=True)
 
 # Hide Streamlit's default menu and footer
 st.markdown("""
@@ -34,11 +40,61 @@ if 'period_name' not in st.session_state:
     today = date.today()
     st.session_state.period_name = today.strftime('%B %Y')
 
-# Create navigation 
-page = st.sidebar.selectbox("Select a page", ["Employee Management", "Salary Calculator", "Payroll Processing"])
+# Create improved sidebar navigation with sections and icons
+st.sidebar.markdown(f"""
+    <div class="sidebar-logo">
+        {get_icon_html("payroll")}
+        <span>Nigerian Payroll System</span>
+    </div>
+""", unsafe_allow_html=True)
+
+# Create navigation sections
+st.sidebar.markdown('<div class="sidebar-section-header">MAIN</div>', unsafe_allow_html=True)
+
+# Determine the active page
+if "page" not in st.session_state:
+    st.session_state.page = "Employee Management"
+
+# Main navigation items
+pages = {
+    "Employee Management": {"icon": "employee", "section": "MAIN"},
+    "Salary Calculator": {"icon": "calculator", "section": "MAIN"},
+    "Payroll Processing": {"icon": "payroll", "section": "PAYROLL"}
+}
+
+# Create sidebar navigation
+for page_name, page_info in pages.items():
+    if page_info["section"] == "MAIN":
+        active_class = "active" if st.session_state.page == page_name else ""
+        if st.sidebar.markdown(f"""
+            <div class="sidebar-nav-item {active_class}" onclick="window.location.href='#{page_name.replace(' ', '_')}'">{get_icon_html(page_info["icon"])} {page_name}</div>
+            """, unsafe_allow_html=True):
+            st.session_state.page = page_name
+            
+# Create payroll section
+st.sidebar.markdown('<div class="sidebar-section-header">PAYROLL</div>', unsafe_allow_html=True)
+
+# Payroll navigation items
+for page_name, page_info in pages.items():
+    if page_info["section"] == "PAYROLL":
+        active_class = "active" if st.session_state.page == page_name else ""
+        if st.sidebar.markdown(f"""
+            <div class="sidebar-nav-item {active_class}" onclick="window.location.href='#{page_name.replace(' ', '_')}'">{get_icon_html(page_info["icon"])} {page_name}</div>
+            """, unsafe_allow_html=True):
+            st.session_state.page = page_name
+
+# Legacy selectbox for compatibility, hidden with CSS
+page = st.sidebar.selectbox("Select a page", list(pages.keys()), index=list(pages.keys()).index(st.session_state.page), key="page_selector")
+st.session_state.page = page
+
+# Apply custom CSS to hide the selectbox
+st.markdown("""
+    <style>
+        div[data-testid="stSelectbox"] {display: none;}
+    </style>
+""", unsafe_allow_html=True)
 
 def salary_calculator_page():
-    st.title("Simple Salary Calculator for Nigerian Employees")
     # Initialize session state
     if 'uploaded_data' not in st.session_state:
         st.session_state.uploaded_data = None
@@ -47,11 +103,12 @@ def salary_calculator_page():
     if 'single_calculation_result' not in st.session_state:
         st.session_state.single_calculation_result = None
 
-    # Sidebar for component configuration
-    st.sidebar.header("Customize Salary Breakdown")
+    # Sidebar for component configuration with better styling
+    st.sidebar.markdown('<div class="sidebar-section-header">CONFIGURATION</div>', unsafe_allow_html=True)
+    st.sidebar.markdown('<h3 class="text-subsection">Customize Salary Breakdown</h3>', unsafe_allow_html=True)
 
-    # Add new description
-    st.sidebar.write("Adjust how the salary is split between different components. These percentages affect tax and pension calculations.")
+    # Add new description with better styling
+    st.sidebar.markdown('<p class="text-helper">Adjust how the salary is split between different components. These percentages affect tax and pension calculations.</p>', unsafe_allow_html=True)
 
     components = {
         "BASIC": st.sidebar.number_input("Basic Salary", min_value=0.0, max_value=100.0, value=30.0, step=0.1),
@@ -972,30 +1029,29 @@ def main():
     # Check if we're viewing an employee detail page from query parameters
     is_employee_details = st.query_params.get("page") == "employee_details"
     
-    # Add sidebar navigation with descriptions
-    with st.sidebar:
-        st.title("💰 Payroll System")
-        st.markdown("---")  # Add separator
-
-        # Add page descriptions
-        descriptions = {
-            "Salary Calculator": "Calculate accurate salaries with tax and pension deductions",
-            "Employee Management": "Manage employee records and bulk upload data",
-            "Payroll Processing": "Process monthly payroll and generate payslips"
-        }
+    # Add page descriptions for the selected page
+    descriptions = {
+        "Salary Calculator": "Calculate accurate salaries with tax and pension deductions",
+        "Employee Management": "Manage employee records and bulk upload data",
+        "Payroll Processing": "Process monthly payroll and generate payslips"
+    }
+    
+    # Display appropriate page title and description
+    if not is_employee_details:
+        # Display page title with proper styling
+        st.markdown(f"<h1 class='text-title'>{st.session_state.page}</h1>", unsafe_allow_html=True)
         
-        # Only show page info if not in employee details view
-        if not is_employee_details:
-            st.info(descriptions[page])
+        # Display page description
+        info_message(descriptions.get(st.session_state.page, ""))
 
     # Display selected page or employee details
     if is_employee_details:
         render_employee_details()
-    elif page == "Employee Management":
+    elif st.session_state.page == "Employee Management":
         render_employee_management()
-    elif page == "Salary Calculator":
+    elif st.session_state.page == "Salary Calculator":
         salary_calculator_page()
-    elif page == "Payroll Processing":
+    elif st.session_state.page == "Payroll Processing":
         payroll_processing_page()
 
 if __name__ == "__main__":
