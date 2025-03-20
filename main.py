@@ -34,25 +34,11 @@ st.markdown("""
         .stDeployButton {display:none;}
         /* Hide the top app tabs (from pages directory) */
         header {visibility: hidden !important;}
-        /* Hide the default tabs at the top (but NOT login tabs) */
+        /* Hide the default tabs at the top */
         [data-testid="stAppViewBlockContainer"] > div:first-child {display: none !important;}
         section.main > div:first-child {display: none !important;}
         /* Add top padding to compensate for hidden header */
         .main .block-container {padding-top: 2rem !important;}
-        /* Only hide tabs at specific locations, not login tabs */
-        div.element-container:first-of-type > div > div > div[data-testid="stVerticalBlock"] > div:has(div[role="tablist"]) {
-            display: none;
-        }
-        /* Make login container visible */
-        .login-container {
-            display: block !important;
-            visibility: visible !important;
-        }
-        /* Make tabs inside login container visible */
-        .login-container div[role="tablist"] {
-            display: flex !important;
-            visibility: visible !important;
-        }
     </style>
 """, unsafe_allow_html=True)
 
@@ -1107,19 +1093,13 @@ def main():
         "My Profile": "Manage your account information"
     }
     
-    # Add sidebar information
-    with st.sidebar:
-        # Only show page info if not in employee details view
-        if not is_employee_details:
-            # Add page descriptions if available
-            if st.session_state.page in descriptions:
-                st.markdown("---")  # Add separator
-                st.info(descriptions[st.session_state.page])
-    
     # Display appropriate page title and description
     if not is_employee_details:
         # Display page title with proper styling
         st.markdown(f"<h1 class='text-title'>{st.session_state.page}</h1>", unsafe_allow_html=True)
+        
+        # Display page description
+        info_message(descriptions.get(st.session_state.page, ""))
 
     # Display selected page or employee details
     if is_employee_details:
