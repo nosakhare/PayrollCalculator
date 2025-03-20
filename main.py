@@ -23,12 +23,19 @@ st.set_page_config(
 with open("style.css") as f:
     st.markdown(f"""<style>{f.read()}</style>""", unsafe_allow_html=True)
 
-# Hide Streamlit's default menu and footer
+# Hide Streamlit's default menu, footer, and top-level tabs
 st.markdown("""
     <style>
         #MainMenu {visibility: hidden;}
         footer {visibility: hidden;}
         .stDeployButton {display:none;}
+        /* Hide the top app tabs (from pages directory) */
+        header {visibility: hidden !important;}
+        /* Hide the default tabs at the top */
+        [data-testid="stAppViewBlockContainer"] > div:first-child {display: none !important;}
+        section.main > div:first-child {display: none !important;}
+        /* Add top padding to compensate for hidden header */
+        .main .block-container {padding-top: 2rem !important;}
     </style>
 """, unsafe_allow_html=True)
 
@@ -40,16 +47,7 @@ if 'period_name' not in st.session_state:
     today = date.today()
     st.session_state.period_name = today.strftime('%B %Y')
 
-# Create improved sidebar navigation with sections and icons
-st.sidebar.markdown(f"""
-    <div class="sidebar-logo">
-        {get_icon_html("payroll")}
-        <span>Nigerian Payroll System</span>
-    </div>
-""", unsafe_allow_html=True)
-
-# Create navigation sections
-st.sidebar.markdown('<div class="sidebar-section-header">MAIN</div>', unsafe_allow_html=True)
+# Removed duplicate logo/title
 
 # Determine the active page
 if "page" not in st.session_state:
@@ -62,7 +60,7 @@ pages = {
     "Payroll Processing": {"icon": "payroll", "section": "PAYROLL"}
 }
 
-# Simple sidebar title
+# Simple sidebar title - only add this once
 st.sidebar.title("Nigerian Payroll System")
 
 # Add section headers
