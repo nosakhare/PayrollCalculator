@@ -43,6 +43,14 @@ st.markdown("""
         [data-testid="stToolbar"] {display: none !important;}
         /* Hide any horizontal navbars */
         .stHorizontalBlock[data-testid="stHorizontalBlock"] > div:first-child {display: none !important;}
+        /* Target specific navigation menu at the top */
+        .css-1lcbmhc.e1fqkh3o0 {display: none !important;}
+        .css-1y4p8pa {display: none !important;}
+        .css-1544g2n.e1fqkh3o3 {display: none !important;}
+        /* Any div containing navigation items */
+        div[role="tablist"] {display: none !important;}
+        /* Additional attempt to hide radio buttons used for navigation */
+        .stRadio {display: none !important;}
         /* Add top padding to compensate for hidden header */
         .main .block-container {padding-top: 2rem !important;}
     </style>
