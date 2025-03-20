@@ -167,34 +167,64 @@ def render_page():
                 }
             )
 
+            # Check if any employees are selected for deletion
+            has_selected = edited_df['Delete'].any()
+
+            # Add custom styles for the delete button
+            st.markdown("""
+                <style>
+                .stButton button {
+                    width: 100%;
+                }
+                .delete-button button {
+                    background-color: #ff4b4b;
+                    color: white;
+                    border: none;
+                }
+                .delete-button button:hover {
+                    background-color: #ff3333;
+                    color: white;
+                    border: none;
+                }
+                .delete-button button:disabled {
+                    background-color: #ffa6a6;
+                    color: white;
+                    border: none;
+                    cursor: not-allowed;
+                }
+                </style>
+            """, unsafe_allow_html=True)
 
             # Handle delete actions
-            if st.button("Delete Selected Employees"):
-                selected_employees = edited_df[edited_df['Delete'] == True]
-                if not selected_employees.empty:
-                    st.warning("Are you sure you want to delete the following employees?")
-                    for _, row in selected_employees.iterrows():
-                        st.write(f"- {row['full_name']} ({row['staff_id']}) [ID: {row['id']}]")
-
-                    if st.button("✓ Confirm Deletion", type="primary"):
-                        success_count = 0
-                        error_count = 0
-
+            delete_col1, delete_col2, delete_col3 = st.columns([1, 2, 1])
+            with delete_col2:
+                delete_button = st.empty()
+                with st.container():
+                    st.markdown('<div class="delete-button">', unsafe_allow_html=True)
+                    if delete_button.button("Delete Selected Employees", disabled=not has_selected):
+                        selected_employees = edited_df[edited_df['Delete'] == True]
+                        st.warning("Are you sure you want to delete the following employees?")
                         for _, row in selected_employees.iterrows():
-                            success, message = delete_employee(row['id'])
-                            if success:
-                                success_count += 1
-                            else:
-                                error_count += 1
-                                st.error(f"Failed to delete {row['full_name']}: {message}")
+                            st.write(f"- {row['full_name']} ({row['staff_id']}) [ID: {row['id']}]")
 
-                        if success_count > 0:
-                            st.success(f"Successfully deleted {success_count} employee(s)")
-                            st.experimental_rerun()
-                        if error_count > 0:
-                            st.error(f"Failed to delete {error_count} employee(s)")
-                else:
-                    st.info("Please select employees to delete using the checkboxes.")
+                        if st.button("✓ Confirm Deletion", type="primary"):
+                            success_count = 0
+                            error_count = 0
+
+                            for _, row in selected_employees.iterrows():
+                                success, message = delete_employee(row['id'])
+                                if success:
+                                    success_count += 1
+                                else:
+                                    error_count += 1
+                                    st.error(f"Failed to delete {row['full_name']}: {message}")
+
+                            if success_count > 0:
+                                st.success(f"Successfully deleted {success_count} employee(s)")
+                                st.experimental_rerun()
+                            if error_count > 0:
+                                st.error(f"Failed to delete {error_count} employee(s)")
+                    st.markdown('</div>', unsafe_allow_html=True)
 
         else:
             st.info("No employees found in the system.")
