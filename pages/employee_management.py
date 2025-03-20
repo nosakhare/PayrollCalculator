@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime
-from database import add_employee, get_all_employees, generate_staff_id
+from database import add_employee, get_all_employees, generate_staff_id, delete_employee
 from utils import validate_csv, process_bulk_upload, generate_csv_template
 
 def render_page():
@@ -104,8 +104,37 @@ def render_page():
         st.subheader("Employee List")
         employees = get_all_employees()
         if employees:
+            # Convert to DataFrame
             df = pd.DataFrame(employees)
-            st.dataframe(df)
+
+            # Create two columns for the table and delete buttons
+            col1, col2 = st.columns([4, 1])
+
+            with col1:
+                # Display employee data without the ID column
+                display_df = df.drop(['id'], axis=1) if 'id' in df.columns else df
+                st.dataframe(display_df)
+
+            with col2:
+                st.write("")  # Add some spacing
+                st.write("")  # Add some spacing
+                # Add delete buttons for each employee
+                for index, employee in df.iterrows():
+                    if st.button(f"🗑️ Delete", key=f"delete_{employee['id']}"):
+                        # Show confirmation dialog
+                        if st.session_state.get(f'confirm_delete_{employee["id"]}', False):
+                            # Delete was already confirmed
+                            success, message = delete_employee(employee['id'])
+                            if success:
+                                st.success(f"Successfully deleted {employee['full_name']}")
+                                # Refresh the page
+                                st.rerun()
+                            else:
+                                st.error(message)
+                        else:
+                            # Show confirmation message
+                            st.session_state[f'confirm_delete_{employee["id"]}'] = True
+                            st.warning(f"Are you sure you want to delete {employee['full_name']}? Click delete button again to confirm.")
         else:
             st.info("No employees found in the system.")
 

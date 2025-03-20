@@ -309,3 +309,27 @@ def generate_staff_id():
 
     conn.close()
     return f'EMP{year}{new_id:04d}'  # Format: EMP230001
+
+# Add this function after get_all_employees()
+
+def delete_employee(employee_id):
+    """Delete an employee from the database"""
+    conn = sqlite3.connect('payroll.db')
+    c = conn.cursor()
+
+    try:
+        # First check if employee exists
+        c.execute('SELECT staff_id FROM employees WHERE id = ?', (employee_id,))
+        employee = c.fetchone()
+
+        if not employee:
+            return False, "Employee not found"
+
+        # Delete the employee
+        c.execute('DELETE FROM employees WHERE id = ?', (employee_id,))
+        conn.commit()
+        return True, "Employee deleted successfully"
+    except Exception as e:
+        return False, f"Error deleting employee: {str(e)}"
+    finally:
+        conn.close()
