@@ -154,6 +154,9 @@ def edit_employee_details(employee):
                 st.error("Please fill in all required fields marked with *")
                 return
             
+            # Get user ID from session state
+            current_user_id = st.session_state.user_id
+            
             # Prepare employee data for update
             employee_data = {
                 'staff_id': staff_id,
@@ -173,7 +176,7 @@ def edit_employee_details(employee):
             }
             
             # Update employee
-            success, message = add_employee(employee_data, user_id)
+            success, message = add_employee(employee_data, current_user_id)
             if success:
                 st.success(message)
                 # Refresh the page with updated data
