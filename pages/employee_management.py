@@ -122,28 +122,53 @@ def render_page():
             display_df = df[display_cols]
 
             # Create metrics
-            st.dataframe(
+            st.data_editor(
                 display_df.drop(['id'], axis=1),
                 hide_index=True,
+                num_rows="fixed",
+                disabled=('staff_id', 'full_name', 'department', 'job_title', 'contract_type'),
                 column_config={
-                    "staff_id": st.column_config.TextColumn("Staff ID"),
-                    "full_name": st.column_config.TextColumn("Name"),
-                    "department": st.column_config.TextColumn("Department"),
-                    "job_title": st.column_config.TextColumn("Position"),
-                    "contract_type": st.column_config.TextColumn("Contract Type")
+                    "staff_id": st.column_config.TextColumn(
+                        "Staff ID",
+                        help="Employee's unique identifier"
+                    ),
+                    "full_name": st.column_config.TextColumn(
+                        "Name",
+                        help="Employee's full name"
+                    ),
+                    "department": st.column_config.TextColumn(
+                        "Department",
+                        help="Employee's department"
+                    ),
+                    "job_title": st.column_config.TextColumn(
+                        "Position",
+                        help="Employee's job title"
+                    ),
+                    "contract_type": st.column_config.TextColumn(
+                        "Contract Type",
+                        help="Type of employment contract"
+                    ),
+                    "Delete": st.column_config.CheckboxColumn(
+                        "Delete",
+                        help="Select to delete employee",
+                        required=True,
+                        default=False
+                    )
                 }
             )
 
-            # Add delete buttons for each row
-            for idx, row in display_df.iterrows():
-                if st.button("🗑️", key=f"delete_{row['id']}", help=f"Delete {row['full_name']}"):
-                    if st.button("✓ Confirm", key=f"confirm_{row['id']}", type="primary"):
+            # Handle delete actions
+            if st.button("Delete Selected Employees"):
+                if st.button("✓ Confirm Deletion", type="primary"):
+                    to_delete = display_df[display_df['Delete']]
+                    for idx, row in to_delete.iterrows():
                         success, message = delete_employee(row['id'])
                         if success:
                             st.success(f"Deleted {row['full_name']}")
-                            st.rerun()
                         else:
-                            st.error(message)
+                            st.error(f"Failed to delete {row['full_name']}: {message}")
+                    st.rerun()
+
         else:
             st.info("No employees found in the system.")
 
