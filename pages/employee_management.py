@@ -12,30 +12,31 @@ def render_page():
 
     with tab1:
         st.subheader("Add New Employee")
-        with st.form("add_employee_form"):
+        # Changed form key to be more specific
+        with st.form("add_employee_form_emp_page"):
             # Required Fields Section
             st.subheader("Required Information")
             col1, col2 = st.columns(2)
 
             with col1:
-                staff_id = st.text_input("Staff ID", value=generate_staff_id(), disabled=True)
-                email = st.text_input("Email *", key="email")
-                full_name = st.text_input("Full Name *", key="full_name")
-                department = st.text_input("Department *", key="department")
+                staff_id = st.text_input("Staff ID", value=generate_staff_id(), disabled=True, key="staff_id_emp")
+                email = st.text_input("Email *", key="email_emp")
+                full_name = st.text_input("Full Name *", key="full_name_emp")
+                department = st.text_input("Department *", key="department_emp")
 
             with col2:
-                job_title = st.text_input("Job Title *", key="job_title")
-                annual_gross = st.number_input("Annual Gross Pay (₦) *", min_value=0.0, key="annual_gross")
-                account_number = st.text_input("Account Number *", key="account_number")
+                job_title = st.text_input("Job Title *", key="job_title_emp")
+                annual_gross = st.number_input("Annual Gross Pay (₦) *", min_value=0.0, key="annual_gross_emp")
+                account_number = st.text_input("Account Number *", key="account_number_emp")
 
             col3, col4 = st.columns(2)
             with col3:
-                contract_type = st.selectbox("Contract Type *", ["Full Time", "Contract"], key="contract_type")
-                start_date = st.date_input("Start Date *", key="start_date")
+                contract_type = st.selectbox("Contract Type *", ["Full Time", "Contract"], key="contract_type_emp")
+                start_date = st.date_input("Start Date *", key="start_date_emp")
 
             with col4:
-                end_date = st.date_input("End Date (Optional)", key="end_date")
-                rsa_pin = st.text_input("RSA PIN (Optional)", key="rsa_pin")
+                end_date = st.date_input("End Date (Optional)", key="end_date_emp")
+                rsa_pin = st.text_input("RSA PIN (Optional)", key="rsa_pin_emp")
 
             # Optional Fields Section
             st.markdown("---")
@@ -45,26 +46,26 @@ def render_page():
             col5, col6 = st.columns(2)
             with col5:
                 reimbursements = st.number_input("Reimbursements (₦)",
-                                              min_value=0.0,
-                                              value=0.0,
-                                              help="Additional allowances like transport or meal allowances",
-                                              key="reimbursements"
-                                              )
+                                             min_value=0.0,
+                                             value=0.0,
+                                             help="Additional allowances like transport or meal allowances",
+                                             key="reimbursements_emp"
+                                             )
 
             with col6:
                 other_deductions = st.number_input("Other Deductions (₦)",
-                                                min_value=0.0,
-                                                value=0.0,
-                                                help="Additional deductions like loans or advances",
-                                                key="other_deductions"
-                                                )
+                                               min_value=0.0,
+                                               value=0.0,
+                                               help="Additional deductions like loans or advances",
+                                               key="other_deductions_emp"
+                                               )
 
             voluntary_pension = st.number_input("Voluntary Pension (₦)",
-                                             min_value=0.0,
-                                             value=0.0,
-                                             help="Additional voluntary pension contributions",
-                                             key="voluntary_pension"
-                                             )
+                                           min_value=0.0,
+                                           value=0.0,
+                                           help="Additional voluntary pension contributions",
+                                           key="voluntary_pension_emp"
+                                           )
 
             submitted = st.form_submit_button("Add Employee")
 

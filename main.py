@@ -28,6 +28,10 @@ st.markdown("""
 # Initialize database
 init_db()
 
+# Initialize session state for payroll period name
+if 'period_name' not in st.session_state:
+    today = date.today()
+    st.session_state.period_name = today.strftime('%B %Y')
 
 # Create navigation 
 page = st.sidebar.selectbox("Select a page", ["Employee Management", "Salary Calculator", "Payroll Processing"])
@@ -450,10 +454,15 @@ elif page == "Payroll Processing":
         with tab1:
             st.subheader("Payroll Calculator")
 
-            # Add payroll period selection
+            # Add payroll period selection with unique key
             col1, col2 = st.columns([2, 1])
             with col1:
-                period_name = st.text_input("Payroll Period", value=st.session_state.period_name, key="payroll_period_input_process")
+                # Changed key to be unique
+                period_name = st.text_input(
+                    "Payroll Period",
+                    value=st.session_state.period_name,
+                    key="payroll_period_input_payroll_page"  # Changed key to be more specific
+                )
 
             with col2:
                 st.metric("Total Payroll", f"₦{st.session_state.total_payroll:,.2f}")
@@ -807,6 +816,7 @@ elif page == "Payroll Processing":
                 st.warning("No payroll data available. Please calculate payroll first.")
 
     payroll_processing_page()
+
 else:
     def employee_management_page():
         st.title("Employee Management")
@@ -816,30 +826,30 @@ else:
 
         with tab1:
             st.subheader("Add New Employee")
-            with st.form("add_employee_form"):
+            with st.form("add_employee_form_main_page"):  # Changed key to be unique
                 # Required Fields Section
                 st.subheader("Required Information")
                 col1, col2 = st.columns(2)
 
                 with col1:
-                    staff_id = st.text_input("Staff ID", value=generate_staff_id(), disabled=True)
-                    email = st.text_input("Email *", key="email")
-                    full_name = st.text_input("Full Name *", key="full_name")
-                    department = st.text_input("Department *", key="department")
+                    staff_id = st.text_input("Staff ID", value=generate_staff_id(), disabled=True, key="staff_id_main")
+                    email = st.text_input("Email *", key="email_main")
+                    full_name = st.text_input("Full Name *", key="full_name_main")
+                    department = st.text_input("Department *", key="department_main")
 
                 with col2:
-                    job_title = st.text_input("Job Title *", key="job_title")
-                    annual_gross = st.number_input("Annual Gross Pay (₦) *", min_value=0.0, key="annual_gross")
-                    account_number = st.text_input("Account Number *", key="account_number")
+                    job_title = st.text_input("Job Title *", key="job_title_main")
+                    annual_gross = st.number_input("Annual Gross Pay (₦) *", min_value=0.0, key="annual_gross_main")
+                    account_number = st.text_input("Account Number *", key="account_number_main")
 
                 col3, col4 = st.columns(2)
                 with col3:
-                    contract_type = st.selectbox("Contract Type *", ["Full Time", "Contract"], key="contract_type")
-                    start_date = st.date_input("Start Date *", key="start_date")
+                    contract_type = st.selectbox("Contract Type *", ["Full Time", "Contract"], key="contract_type_main")
+                    start_date = st.date_input("Start Date *", key="start_date_main")
 
                 with col4:
-                    end_date = st.date_input("End Date (Optional)", key="end_date")
-                    rsa_pin = st.text_input("RSA PIN (Optional)", key="rsa_pin")
+                    end_date = st.date_input("End Date (Optional)", key="end_date_main")
+                    rsa_pin = st.text_input("RSA PIN (Optional)", key="rsa_pin_main")
 
                 # Optional Fields Section
                 st.markdown("---")
@@ -852,7 +862,7 @@ else:
                                                      min_value=0.0,
                                                      value=0.0,
                                                      help="Additional allowances like transport or meal allowances",
-                                                     key="reimbursements"
+                                                     key="reimbursements_main"
                                                      )
 
                 with col6:
@@ -860,45 +870,45 @@ else:
                                                        min_value=0.0,
                                                        value=0.0,
                                                        help="Additional deductions like loans or advances",
-                                                       key="other_deductions"
+                                                       key="other_deductions_main"
                                                        )
 
-                voluntary_pension = st.number_input("Voluntary Pension (₦)",
-                                                    min_value=0.0,
-                                                    value=0.0,
-                                                    help="Additional voluntary pension contributions",
-                                                    key="voluntary_pension"
-                                                    )
+            voluntary_pension = st.number_input("Voluntary Pension (₦)",
+                                                 min_value=0.0,
+                                                 value=0.0,
+                                                 help="Additional voluntary pension contributions",
+                                                 key="voluntary_pension_main"
+                                                 )
 
-                submitted = st.form_submit_button("Add Employee")
+            submitted = st.form_submit_button("Add Employee")
 
-                if submitted:
-                    if not email or not full_name or not department or not job_title or not annual_gross or not account_number:
-                        st.error("Please fill in all required fields marked with *")
-                        return
+            if submitted:
+                if not email or not full_name or not department or not job_title or not annual_gross or not account_number:
+                    st.error("Please fill in all required fields marked with *")
+                    return
 
-                    employee_data = {
-                        'staff_id': staff_id,
-                        'email': email,
-                        'full_name': full_name,
-                        'department': department,
-                        'job_title': job_title,
-                        'annual_gross_pay': annual_gross,
-                        'start_date': start_date.strftime('%Y-%m-%d'),
-                        'end_date': end_date.strftime('%Y-%m-%d') if end_date else None,
-                        'contract_type': contract_type,
-                        'reimbursements': reimbursements,
-                        'other_deductions': other_deductions,
-                        'voluntary_pension': voluntary_pension,
-                        'rsa_pin': rsa_pin,
-                        'account_number': account_number
-                    }
+                employee_data = {
+                    'staff_id': staff_id,
+                    'email': email,
+                    'full_name': full_name,
+                    'department': department,
+                    'job_title': job_title,
+                    'annual_gross_pay': annual_gross,
+                    'start_date': start_date.strftime('%Y-%m-%d'),
+                    'end_date': end_date.strftime('%Y-%m-%d') if end_date else None,
+                    'contract_type': contract_type,
+                    'reimbursements': reimbursements,
+                    'other_deductions': other_deductions,
+                    'voluntary_pension': voluntary_pension,
+                    'rsa_pin': rsa_pin,
+                    'account_number': account_number
+                }
 
-                    success, message = add_employee(employee_data)
-                    if success:
-                        st.success(message)
-                    else:
-                        st.error(message)
+                success, message = add_employee(employee_data)
+                if success:
+                    st.success(message)
+                else:
+                    st.error(message)
 
         with tab2:
             st.subheader("Employee List")
@@ -992,7 +1002,7 @@ def main():
     if page == "Salary Calculator":
         salary_calculator_page()
     elif page == "Employee Management":
-        render_employee_management()
+        employee_management_page()
     else:
         payroll_processing_page()
 
