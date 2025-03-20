@@ -1111,6 +1111,8 @@ def main():
         salary_calculator_page()
     elif st.session_state.page == "Payroll Processing":
         payroll_processing_page()
+    elif st.session_state.page == "Admin Tools":
+        render_admin_tools()
     elif st.session_state.page == "My Profile":
         profile_page()
 
