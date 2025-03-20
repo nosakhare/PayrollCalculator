@@ -119,7 +119,8 @@ def render_page():
             display_cols = ['id', 'staff_id', 'full_name', 'department', 'job_title', 'contract_type']
             display_df = df[display_cols].copy()
 
-            # Add Delete column with initial state
+            # Add View and Delete columns
+            display_df['View'] = False
             display_df['Delete'] = False
 
             # Create metrics with data editor
@@ -157,6 +158,13 @@ def render_page():
                         "Contract Type",
                         help="Type of employment contract"
                     ),
+                    "View": st.column_config.CheckboxColumn(
+                        "View",
+                        help="View employee details",
+                        default=False,
+                        required=True,
+                        width="small"
+                    ),
                     "Delete": st.column_config.CheckboxColumn(
                         "Delete",
                         help="Select employees to delete",
@@ -166,6 +174,12 @@ def render_page():
                     )
                 }
             )
+            
+            # Check if any employees are selected for viewing
+            if edited_df['View'].any():
+                selected_employee = edited_df[edited_df['View'] == True].iloc[0]
+                st.experimental_set_query_params(id=selected_employee['id'], page="employee_details")
+                st.experimental_rerun()
 
             # Check if any employees are selected for deletion
             has_selected = edited_df['Delete'].any()

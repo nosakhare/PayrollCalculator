@@ -8,6 +8,7 @@ from utils import validate_percentages, generate_csv_template, validate_csv, pro
 from payslip_generator import PayslipGenerator
 import os
 from pages.employee_management import render_page as render_employee_management
+from pages.employee_details import render_page as render_employee_details
 
 # Must be the first Streamlit command
 st.set_page_config(
@@ -968,6 +969,10 @@ def employee_management_page():
                 st.error(f"Error processing file: {str(e)}")
 
 def main():
+    # Check if we're viewing an employee detail page from query parameters
+    query_params = st.experimental_get_query_params()
+    is_employee_details = query_params.get("page") == ["employee_details"]
+    
     # Add sidebar navigation with descriptions
     with st.sidebar:
         st.title("💰 Payroll System")
@@ -979,11 +984,15 @@ def main():
             "Employee Management": "Manage employee records and bulk upload data",
             "Payroll Processing": "Process monthly payroll and generate payslips"
         }
-        st.info(descriptions[page])
+        
+        # Only show page info if not in employee details view
+        if not is_employee_details:
+            st.info(descriptions[page])
 
-
-    # Display selected page
-    if page == "Employee Management":
+    # Display selected page or employee details
+    if is_employee_details:
+        render_employee_details()
+    elif page == "Employee Management":
         render_employee_management()
     elif page == "Salary Calculator":
         salary_calculator_page()
