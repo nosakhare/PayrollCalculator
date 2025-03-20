@@ -57,6 +57,7 @@ if not is_authenticated:
 
 # Get the current user's ID
 user_id = st.session_state.user_id
+print(f"DEBUG MAIN: User is authenticated. User ID: {user_id}, Username: {st.session_state.get('username', 'unknown')}")
 
 # Initialize session state for payroll period name
 if 'period_name' not in st.session_state:

@@ -228,12 +228,16 @@ def render_page():
                             error_count = 0
 
                             for _, row in selected_employees.iterrows():
+                                print(f"DEBUG UI: Attempting to delete employee with ID {row['id']} for user {user_id}")
                                 success, message = delete_employee(row['id'], user_id)
+                                print(f"DEBUG UI: Delete result: success={success}, message={message}")
                                 if success:
                                     success_count += 1
                                 else:
                                     error_count += 1
-                                    st.error(f"Failed to delete {row['full_name']}: {message}")
+                                    error_msg = f"Failed to delete {row['full_name']}: {message}"
+                                    print(f"DEBUG UI: Error: {error_msg}")
+                                    st.error(error_msg)
 
                             if success_count > 0:
                                 st.success(f"Successfully deleted {success_count} employee(s)")
