@@ -35,12 +35,14 @@ st.markdown("""
 # Initialize database
 init_db()
 
-# Initialize session state for payroll period name
+# Initialize session state
 if 'period_name' not in st.session_state:
     today = date.today()
     st.session_state.period_name = today.strftime('%B %Y')
+if 'page' not in st.session_state:
+    st.session_state.page = "Employee Management"
 
-# Create improved sidebar navigation with sections and icons
+# Create sidebar navigation
 st.sidebar.markdown(f"""
     <div class="sidebar-logo">
         {get_icon_html("payroll")}
@@ -48,38 +50,28 @@ st.sidebar.markdown(f"""
     </div>
 """, unsafe_allow_html=True)
 
-# Create navigation sections
-st.sidebar.markdown('<div class="sidebar-section-header">MAIN</div>', unsafe_allow_html=True)
-
-# Determine the active page
-if "page" not in st.session_state:
-    st.session_state.page = "Employee Management"
-
-# Main navigation items
+# Define navigation structure
 pages = {
     "Employee Management": {"icon": "employee", "section": "MAIN"},
     "Salary Calculator": {"icon": "calculator", "section": "MAIN"},
     "Payroll Processing": {"icon": "payroll", "section": "PAYROLL"}
 }
 
-# Navigation section headers
+# Create section headers and navigation items
 st.sidebar.markdown('<div class="sidebar-section-header">MAIN</div>', unsafe_allow_html=True)
-st.sidebar.markdown('<div class="sidebar-section-header" style="margin-top: 20px;">PAYROLL</div>', unsafe_allow_html=True)
+main_pages = [page for page, info in pages.items() if info["section"] == "MAIN"]
+for page in main_pages:
+    icon = get_icon_html(pages[page]["icon"])
+    if st.sidebar.button(f"{icon} {page}", key=f"nav_{page}", use_container_width=True):
+        st.session_state.page = page
 
-# Create styled navigation with a native Streamlit radio component
-page_icons = {page_name: get_icon_html(page_info["icon"]) for page_name, page_info in pages.items()}
+st.sidebar.markdown('<div class="sidebar-section-header">PAYROLL</div>', unsafe_allow_html=True)
+payroll_pages = [page for page, info in pages.items() if info["section"] == "PAYROLL"]
+for page in payroll_pages:
+    icon = get_icon_html(pages[page]["icon"])
+    if st.sidebar.button(f"{icon} {page}", key=f"nav_{page}", use_container_width=True):
+        st.session_state.page = page
 
-# Use radio buttons which are easier to style
-selected = st.sidebar.radio(
-    "Navigation",
-    options=list(pages.keys()),
-    format_func=lambda x: f"{page_icons.get(x, '')} {x}",
-    label_visibility="collapsed",
-    index=list(pages.keys()).index(st.session_state.page),
-    key="nav_radio"
-)
-# Update session state
-st.session_state.page = selected
 
 def salary_calculator_page():
     # Initialize session state
@@ -786,7 +778,7 @@ def payroll_processing_page():
 
             # Add option to generate payslips
             st.subheader("Generate Payslips")
-            company_name = st.text_input("Company Name", value="Your Company Name", key="bulk_company_name_payroll")
+            company_name = st.text_input(""Company Name", value="Your Company Name", key="bulk_company_name_payroll")
             company_address = st.text_area("Company Address", value="Company Address", height=100, key="bulk_company_address_payroll")
             rc_number = st.text_input("RC Number", value="RC123456", key="bulk_rc_number_payroll")
 
@@ -819,7 +811,7 @@ def payroll_processing_page():
                                 },
                                 'deductions': {
                                     'PAYE Tax': row['PAYE'],
-                                                                        'Pension': row['Pension'],
+                                    'Pension': row['Pension'],
                                     'Other Deductions': row['Other Deductions']
                                 },
                                 'employer_pension': row['Pension'] * 1.25,
@@ -1015,19 +1007,19 @@ def employee_management_page():
 def main():
     # Check if we're viewing an employee detail page from query parameters
     is_employee_details = st.query_params.get("page") == "employee_details"
-    
+
     # Add page descriptions for the selected page
     descriptions = {
         "Salary Calculator": "Calculate accurate salaries with tax and pension deductions",
         "Employee Management": "Manage employee records and bulk upload data",
         "Payroll Processing": "Process monthly payroll and generate payslips"
     }
-    
+
     # Display appropriate page title and description
     if not is_employee_details:
         # Display page title with proper styling
         st.markdown(f"<h1 class='text-title'>{st.session_state.page}</h1>", unsafe_allow_html=True)
-        
+
         # Display page description
         info_message(descriptions.get(st.session_state.page, ""))
 
