@@ -441,6 +441,9 @@ elif page == "Payroll Processing":
             st.session_state.total_payroll = 0
         if 'review_data' not in st.session_state:
             st.session_state.review_data = None
+        if 'period_name' not in st.session_state:
+            today = date.today()
+            st.session_state.period_name = today.strftime('%B %Y')
 
         tab1, tab2 = st.tabs(["Process Payroll", "Export Options"])
 
@@ -450,9 +453,7 @@ elif page == "Payroll Processing":
             # Add payroll period selection
             col1, col2 = st.columns([2, 1])
             with col1:
-                today = date.today()
-                current_month = today.strftime('%B %Y')
-                period_name = st.text_input("Payroll Period", value=current_month)
+                period_name = st.text_input("Payroll Period", value=st.session_state.period_name, key="payroll_period_input")
 
             with col2:
                 st.metric("Total Payroll", f"₦{st.session_state.total_payroll:,.2f}")
@@ -737,15 +738,15 @@ elif page == "Payroll Processing":
                 st.download_button(
                     label="Download Payroll Data (CSV)",
                     data=csv_data,
-                    file_name=f"salary_results_{period_name.replace(' ', '_')}.csv",
+                    file_name=f"salary_results_{st.session_state.period_name.replace(' ', '_')}.csv",
                     mime="text/csv"
                 )
 
                 # Add option to generate payslips
                 st.subheader("Generate Payslips")
-                company_name = st.text_input("Company Name", value="Your Company Name")
-                company_address = st.text_area("Company Address", value="Company Address", height=100)
-                rc_number = st.text_input("RC Number", value="RC123456")
+                company_name = st.text_input("Company Name", value="Your Company Name", key="bulk_company_name_payroll")
+                company_address = st.text_area("Company Address", value="Company Address", height=100, key="bulk_company_address_payroll")
+                rc_number = st.text_input("RC Number", value="RC123456", key="bulk_rc_number_payroll")
 
                 if st.button("Generate Payslips"):
                     try:
@@ -764,7 +765,7 @@ elif page == "Payroll Processing":
                                 },
                                 'name': row.get('Employee', 'Employee'),
                                 'department': row.get('Department', 'Department'),
-                                'pay_period': period_name,
+                                'pay_period': st.session_state.period_name,
                                 'salary_data': {
                                     'earnings': {
                                         'Basic Salary': row['Basic'],
@@ -782,7 +783,7 @@ elif page == "Payroll Processing":
                                     'employer_pension': row['Pension'] * 1.25,
                                     'net_pay': row['Net Pay']
                                 }
-                                                        }
+                            }
                             generator.generate_payslip(employee_data, payslip_dir)
 
                         # Create ZIP file of all payslips
