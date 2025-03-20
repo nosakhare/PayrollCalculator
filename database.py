@@ -381,8 +381,6 @@ def delete_employee(employee_id, user_id):
     """Delete an employee from the database"""
     conn = sqlite3.connect('payroll.db')
     c = conn.cursor()
-    
-    print(f"DEBUG: Attempting to delete employee_id={employee_id} for user_id={user_id}")
 
     try:
         # First check if employee exists and belongs to the user
@@ -390,29 +388,21 @@ def delete_employee(employee_id, user_id):
         employee = c.fetchone()
         
         if not employee:
-            print(f"DEBUG: Employee with ID {employee_id} not found")
             return False, "Employee not found"
-            
-        print(f"DEBUG: Found employee: {employee}")
         
         # Check if the employee belongs to this user
         if employee and int(employee[3]) != int(user_id):
-            print(f"DEBUG: Permission denied. Employee has user_id={employee[3]} ({type(employee[3])}), but requester has user_id={user_id} ({type(user_id)})")
             return False, "You don't have permission to delete this employee"
 
         # Delete the employee (ensure to check user_id to maintain data isolation)
-        print(f"DEBUG: Executing DELETE query for employee_id={employee_id} and user_id={user_id}")
         c.execute('DELETE FROM employees WHERE id = ? AND user_id = ?', (employee_id, user_id))
         
         if c.rowcount == 0:
-            print(f"DEBUG: No rows affected by the DELETE query")
             return False, "No rows were deleted. Possible permission issue."
             
-        print(f"DEBUG: Successfully deleted {c.rowcount} rows")
         conn.commit()
         return True, "Employee deleted successfully"
     except Exception as e:
-        print(f"DEBUG: Exception occurred: {str(e)}")
         return False, f"Error deleting employee: {str(e)}"
     finally:
         conn.close()
@@ -483,8 +473,7 @@ def get_user_by_id(user_id):
         c.execute('SELECT id, username, email, full_name, company_name, created_at FROM users WHERE id = ?', (user_id,))
         user = c.fetchone()
         return dict(user) if user else None
-    except Exception as e:
-        print(f"Error getting user: {str(e)}")
+    except Exception:
         return None
     finally:
         conn.close()

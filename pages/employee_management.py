@@ -126,7 +126,6 @@ def render_page():
             display_df['Delete'] = False
 
             # Create metrics with data editor
-            print(f"DEBUG UI: Before data_editor, display_df has {len(display_df)} rows")
             edited_df = st.data_editor(
                 display_df,
                 hide_index=True,
@@ -257,7 +256,7 @@ def render_page():
                         # Get the employees from session state to ensure consistency
                         if "selected_employees_for_deletion" in st.session_state:
                             for _, row in st.session_state.selected_employees_for_deletion.iterrows():
-                                print(f"DEBUG UI: Deleting employee ID {row['id']} for user {user_id}")
+                                # Process employee deletion
                                 success, message = delete_employee(row['id'], user_id)
                                 
                                 if success:
