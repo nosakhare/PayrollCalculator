@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import time
 from datetime import datetime
 from database import add_employee, get_all_employees, generate_staff_id, delete_employee
 from utils import validate_csv, process_bulk_upload, generate_csv_template
@@ -218,41 +219,56 @@ def render_page():
                 delete_button = st.empty()
                 with st.container():
                     st.markdown('<div class="delete-button">', unsafe_allow_html=True)
-                    delete_clicked = delete_button.button("Delete Selected Employees", disabled=not has_selected, key="delete_selected_button")
-                    print(f"DEBUG UI: Delete button clicked: {delete_clicked}")
-                    if delete_clicked:
-                        print(f"DEBUG UI: Has selected employees: {has_selected}")
+                    # Create the delete button and handle the delete action directly
+                    # Use st.empty() for modal-style confirmation
+                    confirmation_container = st.empty()
+                    
+                    if delete_button.button("Delete Selected Employees", disabled=not has_selected, key="delete_single_button"):
+                        print(f"DEBUG UI: Delete button clicked")
                         selected_employees = edited_df[edited_df['Delete'] == True]
                         print(f"DEBUG UI: Selected employees count: {len(selected_employees)}")
-                        st.warning("Are you sure you want to delete the following employees?")
-                        for _, row in selected_employees.iterrows():
-                            st.write(f"- {row['full_name']} ({row['staff_id']}) [ID: {row['id']}]")
-
-                        # Use a unique key for the confirm deletion button to avoid conflicts
-                        confirm_delete = st.button("✓ Confirm Deletion", type="primary", key="confirm_delete_button")
-                        print(f"DEBUG UI: Confirm deletion button pressed: {confirm_delete}")
-                        if confirm_delete:
-                            print(f"DEBUG UI: Starting employee deletion process")
-                            success_count = 0
-                            error_count = 0
-
+                        
+                        # Create a modal-like confirmation dialog
+                        with confirmation_container.container():
+                            st.warning("⚠️ Confirm Deletion")
+                            st.write("Are you sure you want to delete the following employees?")
                             for _, row in selected_employees.iterrows():
-                                print(f"DEBUG UI: Attempting to delete employee with ID {row['id']} for user {user_id}")
-                                success, message = delete_employee(row['id'], user_id)
-                                print(f"DEBUG UI: Delete result: success={success}, message={message}")
-                                if success:
-                                    success_count += 1
-                                else:
-                                    error_count += 1
-                                    error_msg = f"Failed to delete {row['full_name']}: {message}"
-                                    print(f"DEBUG UI: Error: {error_msg}")
-                                    st.error(error_msg)
-
-                            if success_count > 0:
-                                st.success(f"Successfully deleted {success_count} employee(s)")
+                                st.write(f"- {row['full_name']} ({row['staff_id']}) [ID: {row['id']}]")
+                            
+                            col1, col2 = st.columns(2)
+                            cancel = col1.button("Cancel", key="cancel_delete")
+                            confirm = col2.button("Delete", type="primary", key="confirm_delete")
+                            
+                            print(f"DEBUG UI: Cancel: {cancel}, Confirm: {confirm}")
+                            
+                            if cancel:
+                                confirmation_container.empty()
                                 st.rerun()
-                            if error_count > 0:
-                                st.error(f"Failed to delete {error_count} employee(s)")
+                                
+                            if confirm:
+                                print(f"DEBUG UI: Starting employee deletion process")
+                                success_count = 0
+                                error_count = 0
+                                
+                                for _, row in selected_employees.iterrows():
+                                    print(f"DEBUG UI: Attempting to delete employee with ID {row['id']} for user {user_id}")
+                                    success, message = delete_employee(row['id'], user_id)
+                                    print(f"DEBUG UI: Delete result: success={success}, message={message}")
+                                    if success:
+                                        success_count += 1
+                                    else:
+                                        error_count += 1
+                                        confirmation_container.error(f"Failed to delete {row['full_name']}: {message}")
+                                        print(f"DEBUG UI: Error: {message}")
+                                
+                                if success_count > 0:
+                                    confirmation_container.success(f"Successfully deleted {success_count} employee(s)")
+                                    # Wait for 2 seconds to show the success message
+                                    time.sleep(2)
+                                    st.rerun()
+                                    
+                                if error_count > 0:
+                                    confirmation_container.error(f"Failed to delete {error_count} employee(s)")
                     st.markdown('</div>', unsafe_allow_html=True)
 
         else:
