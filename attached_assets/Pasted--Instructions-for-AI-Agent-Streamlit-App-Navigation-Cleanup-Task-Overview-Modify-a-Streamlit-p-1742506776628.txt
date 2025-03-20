@@ -1,0 +1,87 @@
+# Instructions for AI Agent: Streamlit App Navigation Cleanup
+
+## Task Overview
+Modify a Streamlit payroll management application to remove the redundant top navigation tabs while preserving the functional sidebar navigation system.
+
+## Current Issues
+The application currently has multiple navigation systems that create confusion:
+1. Top navigation tabs ("main", "employee details", "employee management") that don't function properly
+2. Sidebar navigation that works correctly
+3. Query parameter-based navigation for employee details
+
+## Implementation Steps
+
+### Step 1: Add CSS to Hide Top Navigation
+Add this CSS snippet immediately after the `st.set_page_config()` call in `main.py`:
+
+```python
+# Hide Streamlit's default menu, footer, and top navigation tabs
+st.markdown("""
+    <style>
+        /* Hide the top navigation tabs completely */
+        div[data-testid="stVerticalBlock"] > div:has(div[role="tablist"]) {
+            display: none;
+        }
+        
+        /* Keep existing styles */
+        #MainMenu {visibility: hidden;}
+        footer {visibility: hidden;}
+        .stDeployButton {display:none;}
+    </style>
+""", unsafe_allow_html=True)
+```
+
+### Step 2: Clean Up the Navigation Logic
+Ensure the application only uses the sidebar navigation by reviewing and updating the page routing code:
+
+1. Locate the sidebar navigation selectbox:
+   ```python
+   page = st.sidebar.selectbox("Select a page", ["Employee Management", "Salary Calculator", "Payroll Processing"])
+   ```
+
+2. Ensure the `main()` function routes based only on this selection plus query params:
+   ```python
+   def main():
+       # Check if we're viewing an employee detail page from query parameters
+       is_employee_details = st.query_params.get("page") == "employee_details"
+       
+       # Add sidebar information
+       with st.sidebar:
+           st.title("💰 Payroll System")
+           st.markdown("---")  # Add separator
+           
+           # Only show page info if not in employee details view
+           if not is_employee_details:
+               # Add page descriptions
+               descriptions = {
+                   "Salary Calculator": "Calculate accurate salaries with tax and pension deductions",
+                   "Employee Management": "Manage employee records and bulk upload data",
+                   "Payroll Processing": "Process monthly payroll and generate payslips"
+               }
+               st.info(descriptions[page])
+       
+       # Display selected page or employee details
+       if is_employee_details:
+           render_employee_details()
+       elif page == "Employee Management":
+           render_employee_management()
+       elif page == "Salary Calculator":
+           salary_calculator_page()
+       elif page == "Payroll Processing":
+           payroll_processing_page()
+   ```
+
+### Step 3: Review and Clean Up Page Rendering Functions
+Ensure that each page rendering function (`render_employee_details()`, `render_employee_management()`, etc.) doesn't create additional navigation tabs.
+
+### Step 4: Test the Implementation
+1. Start the application
+2. Verify the top navigation tabs are no longer visible
+3. Confirm the sidebar navigation works correctly for all pages
+4. Test the employee details view using query parameters
+5. Verify all page content displays properly
+
+## Additional Notes
+- The CSS selector used targets Streamlit's tab structure generally, so it will hide any automatically generated tabs
+- This approach preserves the query parameter system for viewing employee details
+- The sidebar navigation remains as the single, consistent way to navigate between main sections
