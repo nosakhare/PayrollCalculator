@@ -2,7 +2,8 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime, date
 from calendar import monthrange
-from database import init_db, add_employee, get_all_employees, generate_staff_id, create_payroll_period, get_active_payroll_period, create_payroll_run, save_payroll_details, update_payroll_run_status
+from database import init_db, add_employee, get_all_employees, generate_staff_id, create_payroll_period
+from database import get_active_payroll_period, create_payroll_run, save_payroll_details, update_payroll_run_status
 from salary_calculator import SalaryCalculator
 from utils import validate_percentages, generate_csv_template, validate_csv, process_bulk_upload
 from payslip_generator import PayslipGenerator
@@ -11,6 +12,7 @@ from pages.employee_management import render_page as render_employee_management
 from pages.employee_details import render_page as render_employee_details
 from sidebar_icons import get_icon_html
 from notifications import success_message, error_message, warning_message, info_message, loading_spinner, progress_bar, step_indicator, workflow_buttons
+from auth import login_page, profile_page, check_authentication, inject_custom_css
 
 # Must be the first Streamlit command
 st.set_page_config(
@@ -42,12 +44,24 @@ st.markdown("""
 # Initialize database
 init_db()
 
+# Inject custom CSS for authentication pages
+inject_custom_css()
+
+# Check authentication status
+is_authenticated = check_authentication()
+
+# If not authenticated, show login page and exit early
+if not is_authenticated:
+    login_page()
+    st.stop()  # Stop execution here if not authenticated
+
+# Get the current user's ID
+user_id = st.session_state.user_id
+
 # Initialize session state for payroll period name
 if 'period_name' not in st.session_state:
     today = date.today()
     st.session_state.period_name = today.strftime('%B %Y')
-
-# Removed duplicate logo/title
 
 # Determine the active page
 if "page" not in st.session_state:
@@ -57,11 +71,18 @@ if "page" not in st.session_state:
 pages = {
     "Employee Management": {"icon": "employee", "section": "MAIN"},
     "Salary Calculator": {"icon": "calculator", "section": "MAIN"},
-    "Payroll Processing": {"icon": "payroll", "section": "PAYROLL"}
+    "Payroll Processing": {"icon": "payroll", "section": "PAYROLL"},
+    "My Profile": {"icon": "profile", "section": "USER"}
 }
 
 # Simple sidebar title - only add this once
 st.sidebar.title("Nigerian Payroll System")
+
+# Display user info in sidebar
+if st.session_state.user:
+    user = st.session_state.user
+    st.sidebar.markdown(f"**Logged in as:** {user['full_name']}")
+    st.sidebar.markdown("<hr>", unsafe_allow_html=True)
 
 # Add section headers
 st.sidebar.markdown('<div class="sidebar-section-header">MAIN</div>', unsafe_allow_html=True)
@@ -96,6 +117,25 @@ for page_name, page_info in pages.items():
         icon = page_info["icon"]
         if st.sidebar.button(f"{page_name}", 
                             key=f"btn_payroll_{page_name.lower().replace(' ', '_')}",
+                            use_container_width=True,
+                            type=button_style):
+            st.session_state.page = page_name
+            st.rerun()
+
+# Add user section header
+st.sidebar.markdown('<div class="sidebar-section-header">USER</div>', unsafe_allow_html=True)
+
+# User navigation items
+for page_name, page_info in pages.items():
+    if page_info["section"] == "USER":
+        # Determine if this is the active page
+        is_active = st.session_state.page == page_name
+        button_style = "primary" if is_active else "secondary"
+        
+        # Use standard buttons with icons
+        icon = page_info["icon"]
+        if st.sidebar.button(f"{page_name}", 
+                            key=f"btn_user_{page_name.lower().replace(' ', '_')}",
                             use_container_width=True,
                             type=button_style):
             st.session_state.page = page_name
@@ -1038,7 +1078,8 @@ def main():
     descriptions = {
         "Salary Calculator": "Calculate accurate salaries with tax and pension deductions",
         "Employee Management": "Manage employee records and bulk upload data",
-        "Payroll Processing": "Process monthly payroll and generate payslips"
+        "Payroll Processing": "Process monthly payroll and generate payslips",
+        "My Profile": "Manage your account information"
     }
     
     # Display appropriate page title and description
@@ -1058,6 +1099,8 @@ def main():
         salary_calculator_page()
     elif st.session_state.page == "Payroll Processing":
         payroll_processing_page()
+    elif st.session_state.page == "My Profile":
+        profile_page()
 
 if __name__ == "__main__":
     main()

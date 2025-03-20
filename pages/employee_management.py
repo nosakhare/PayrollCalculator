@@ -5,6 +5,9 @@ from database import add_employee, get_all_employees, generate_staff_id, delete_
 from utils import validate_csv, process_bulk_upload, generate_csv_template
 
 def render_page():
+    # Get user ID from session state
+    user_id = st.session_state.user_id
+    
     # Create tabs for different operations
     tab1, tab2, tab3 = st.tabs(["Add Employee", "View Employees", "Bulk Upload"])
 
@@ -17,7 +20,7 @@ def render_page():
             col1, col2 = st.columns(2)
 
             with col1:
-                staff_id = st.text_input("Staff ID", value=generate_staff_id(), disabled=True, key="staff_id_emp_page")
+                staff_id = st.text_input("Staff ID", value=generate_staff_id(user_id), disabled=True, key="staff_id_emp_page")
                 email = st.text_input("Email *", key="email_emp_page")
                 full_name = st.text_input("Full Name *", key="full_name_emp_page")
                 department = st.text_input("Department *", key="department_emp_page")
@@ -92,7 +95,7 @@ def render_page():
                     'account_number': account_number
                 }
 
-                success, message = add_employee(employee_data)
+                success, message = add_employee(employee_data, user_id)
                 if success:
                     st.success(message)
                 else:
@@ -100,7 +103,7 @@ def render_page():
 
     with tab2:
         st.subheader("Employee List")
-        employees = get_all_employees()
+        employees = get_all_employees(user_id)
         if employees:
             # Convert to DataFrame
             df = pd.DataFrame(employees)

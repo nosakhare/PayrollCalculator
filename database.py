@@ -108,15 +108,15 @@ def init_db():
     conn.close()
 
 # Add functions for payroll period management
-def create_payroll_period(period_name, start_date, end_date):
+def create_payroll_period(user_id, period_name, start_date, end_date):
     conn = sqlite3.connect('payroll.db')
     c = conn.cursor()
 
     try:
         c.execute('''
-            INSERT INTO payroll_periods (period_name, start_date, end_date)
-            VALUES (?, ?, ?)
-        ''', (period_name, start_date, end_date))
+            INSERT INTO payroll_periods (user_id, period_name, start_date, end_date)
+            VALUES (?, ?, ?, ?)
+        ''', (user_id, period_name, start_date, end_date))
         conn.commit()
         return True, "Payroll period created successfully"
     except Exception as e:
@@ -124,27 +124,28 @@ def create_payroll_period(period_name, start_date, end_date):
     finally:
         conn.close()
 
-def get_active_payroll_period():
+def get_active_payroll_period(user_id):
     conn = sqlite3.connect('payroll.db')
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
 
-    c.execute('SELECT * FROM payroll_periods WHERE status = "active" ORDER BY start_date DESC LIMIT 1')
+    c.execute('SELECT * FROM payroll_periods WHERE user_id = ? AND status = "active" ORDER BY start_date DESC LIMIT 1', 
+              (user_id,))
     period = c.fetchone()
 
     conn.close()
     return dict(period) if period else None
 
-def create_payroll_run(period_id):
+def create_payroll_run(user_id, period_id):
     conn = sqlite3.connect('payroll.db')
     c = conn.cursor()
 
     try:
         run_date = datetime.now().strftime('%Y-%m-%d')
         c.execute('''
-            INSERT INTO payroll_runs (period_id, run_date)
-            VALUES (?, ?)
-        ''', (period_id, run_date))
+            INSERT INTO payroll_runs (user_id, period_id, run_date)
+            VALUES (?, ?, ?)
+        ''', (user_id, period_id, run_date))
         run_id = c.lastrowid
         conn.commit()
         return True, run_id
@@ -182,23 +183,30 @@ def save_payroll_details(run_id, employee_details):
     finally:
         conn.close()
 
-def update_payroll_run_status(run_id, status, approver=None):
+def update_payroll_run_status(run_id, status, user_id, approver=None):
     conn = sqlite3.connect('payroll.db')
     c = conn.cursor()
 
     try:
+        # First verify that this run belongs to the user
+        c.execute('SELECT id FROM payroll_runs WHERE id = ? AND user_id = ?', (run_id, user_id))
+        run = c.fetchone()
+        
+        if not run:
+            return False, "Payroll run not found or you don't have permission to update it"
+            
         if status == 'approved':
             c.execute('''
                 UPDATE payroll_runs 
                 SET status = ?, approved_by = ?, approved_at = CURRENT_TIMESTAMP
-                WHERE id = ?
-            ''', (status, approver, run_id))
+                WHERE id = ? AND user_id = ?
+            ''', (status, approver, run_id, user_id))
         else:
             c.execute('''
                 UPDATE payroll_runs 
                 SET status = ?
-                WHERE id = ?
-            ''', (status, run_id))
+                WHERE id = ? AND user_id = ?
+            ''', (status, run_id, user_id))
         conn.commit()
         return True, f"Payroll run status updated to {status}"
     except Exception as e:
@@ -206,24 +214,25 @@ def update_payroll_run_status(run_id, status, approver=None):
     finally:
         conn.close()
 
-def get_employee_by_id(employee_id):
+def get_employee_by_id(employee_id, user_id):
     conn = sqlite3.connect('payroll.db')
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
 
-    c.execute('SELECT * FROM employees WHERE id = ?', (employee_id,))
+    c.execute('SELECT * FROM employees WHERE id = ? AND user_id = ?', (employee_id, user_id))
     employee = c.fetchone()
 
     conn.close()
     return dict(employee) if employee else None
 
-def add_employee(employee_data):
+def add_employee(employee_data, user_id):
     conn = sqlite3.connect('payroll.db')
     c = conn.cursor()
 
     try:
-        # Check if employee exists
-        c.execute('SELECT id FROM employees WHERE staff_id = ?', (employee_data['staff_id'],))
+        # Check if employee exists for this user
+        c.execute('SELECT id FROM employees WHERE staff_id = ? AND user_id = ?', 
+                  (employee_data['staff_id'], user_id))
         existing_employee = c.fetchone()
 
         if existing_employee:
@@ -243,7 +252,7 @@ def add_employee(employee_data):
                     voluntary_pension = ?,
                     rsa_pin = ?,
                     account_number = ?
-                WHERE staff_id = ?
+                WHERE staff_id = ? AND user_id = ?
             ''', (
                 employee_data['email'],
                 employee_data['full_name'],
@@ -258,7 +267,8 @@ def add_employee(employee_data):
                 employee_data.get('voluntary_pension', 0),
                 employee_data.get('rsa_pin'),
                 employee_data['account_number'],
-                employee_data['staff_id']
+                employee_data['staff_id'],
+                user_id
             ))
             conn.commit()
             return True, "Employee updated successfully"
@@ -266,12 +276,13 @@ def add_employee(employee_data):
             # Insert new employee
             c.execute('''
                 INSERT INTO employees (
-                    staff_id, email, full_name, department, job_title,
+                    user_id, staff_id, email, full_name, department, job_title,
                     annual_gross_pay, start_date, end_date, contract_type,
                     reimbursements, other_deductions, voluntary_pension,
                     rsa_pin, account_number
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''', (
+                user_id,
                 employee_data['staff_id'],
                 employee_data['email'],
                 employee_data['full_name'],
@@ -301,18 +312,18 @@ def add_employee(employee_data):
     finally:
         conn.close()
 
-def get_all_employees():
+def get_all_employees(user_id):
     conn = sqlite3.connect('payroll.db')
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
 
-    c.execute('SELECT * FROM employees ORDER BY created_at DESC')
+    c.execute('SELECT * FROM employees WHERE user_id = ? ORDER BY created_at DESC', (user_id,))
     employees = [dict(row) for row in c.fetchall()]
 
     conn.close()
     return employees
 
-def generate_staff_id():
+def generate_staff_id(user_id):
     """Generate a unique staff ID"""
     conn = sqlite3.connect('payroll.db')
     c = conn.cursor()
@@ -320,8 +331,9 @@ def generate_staff_id():
     # Get current year
     year = datetime.now().year % 100
 
-    # Get the latest staff ID for this year
-    c.execute("SELECT staff_id FROM employees WHERE staff_id LIKE ? ORDER BY staff_id DESC LIMIT 1", (f'EMP{year}%',))
+    # Get the latest staff ID for this year for this user
+    c.execute("SELECT staff_id FROM employees WHERE user_id = ? AND staff_id LIKE ? ORDER BY staff_id DESC LIMIT 1", 
+              (user_id, f'EMP{year}%'))
     result = c.fetchone()
 
     if result:
