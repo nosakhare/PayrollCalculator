@@ -4,8 +4,6 @@ from datetime import datetime
 from database import get_employee_by_id, add_employee
 
 def render_page():
-    st.title("Employee Details")
-    
     # Check if employee_id is in query parameters
     if not st.query_params.get("id"):
         st.warning("No employee selected. Please select an employee from the employee list.")

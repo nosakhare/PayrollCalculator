@@ -5,8 +5,6 @@ from database import add_employee, get_all_employees, generate_staff_id, delete_
 from utils import validate_csv, process_bulk_upload, generate_csv_template
 
 def render_page():
-    st.title("Employee Management")
-
     # Create tabs for different operations
     tab1, tab2, tab3 = st.tabs(["Add Employee", "View Employees", "Bulk Upload"])
 

@@ -484,8 +484,6 @@ def salary_calculator_page():
         """)
 
 def payroll_processing_page():
-    st.title("Payroll Processing")
-
     # Get all employees
     employees = get_all_employees()
     if not employees:
