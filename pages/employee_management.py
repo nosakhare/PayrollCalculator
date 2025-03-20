@@ -213,63 +213,84 @@ def render_page():
                 </style>
             """, unsafe_allow_html=True)
 
-            # Handle delete actions
-            delete_col1, delete_col2, delete_col3 = st.columns([1, 2, 1])
-            with delete_col2:
-                delete_button = st.empty()
-                with st.container():
-                    st.markdown('<div class="delete-button">', unsafe_allow_html=True)
-                    # Create the delete button and handle the delete action directly
-                    # Use st.empty() for modal-style confirmation
-                    confirmation_container = st.empty()
+            # Handle delete actions with a completely redesigned approach
+            if has_selected:
+                # Store selected employees in session state for persistence
+                selected_employees = edited_df[edited_df['Delete'] == True]
+                st.session_state.selected_employees_for_deletion = selected_employees
+                
+                # Display a notification showing selected employees
+                st.warning(f"⚠️ {len(selected_employees)} employee(s) selected for deletion")
+                
+                # Show the selected employees
+                st.subheader("Selected for deletion:")
+                for _, row in selected_employees.iterrows():
+                    st.info(f"{row['full_name']} ({row['staff_id']}) [ID: {row['id']}]")
+                
+                # Create a clear two-step process
+                delete_col1, delete_col2 = st.columns(2)
+                
+                # Step 1: Initial deletion button (only shown when not in confirmation mode)
+                if "confirm_delete_mode" not in st.session_state or not st.session_state.confirm_delete_mode:
+                    if delete_col1.button("Delete Selected Employees", type="primary", key="trigger_delete_confirmation"):
+                        st.session_state.confirm_delete_mode = True
+                        st.rerun()
+                
+                # Step 2: Confirmation buttons (only shown in confirmation mode)
+                if "confirm_delete_mode" in st.session_state and st.session_state.confirm_delete_mode:
+                    st.error("⚠️ WARNING: This action cannot be undone!")
+                    st.markdown("**Are you sure you want to delete these employees?**")
                     
-                    if delete_button.button("Delete Selected Employees", disabled=not has_selected, key="delete_single_button"):
-                        print(f"DEBUG UI: Delete button clicked")
-                        selected_employees = edited_df[edited_df['Delete'] == True]
-                        print(f"DEBUG UI: Selected employees count: {len(selected_employees)}")
+                    # Cancel button
+                    if delete_col1.button("Cancel", key="cancel_delete_action"):
+                        # Reset confirmation mode
+                        st.session_state.confirm_delete_mode = False
+                        st.rerun()
+                    
+                    # Confirm button with a different color and more prominent
+                    if delete_col2.button("Yes, Delete Permanently", type="primary", key="confirm_delete_action"):
+                        # Process the deletion
+                        success_count = 0
+                        error_count = 0
+                        error_messages = []
                         
-                        # Create a modal-like confirmation dialog
-                        with confirmation_container.container():
-                            st.warning("⚠️ Confirm Deletion")
-                            st.write("Are you sure you want to delete the following employees?")
-                            for _, row in selected_employees.iterrows():
-                                st.write(f"- {row['full_name']} ({row['staff_id']}) [ID: {row['id']}]")
-                            
-                            col1, col2 = st.columns(2)
-                            cancel = col1.button("Cancel", key="cancel_delete")
-                            confirm = col2.button("Delete", type="primary", key="confirm_delete")
-                            
-                            print(f"DEBUG UI: Cancel: {cancel}, Confirm: {confirm}")
-                            
-                            if cancel:
-                                confirmation_container.empty()
-                                st.rerun()
+                        # Get the employees from session state to ensure consistency
+                        if "selected_employees_for_deletion" in st.session_state:
+                            for _, row in st.session_state.selected_employees_for_deletion.iterrows():
+                                print(f"DEBUG UI: Deleting employee ID {row['id']} for user {user_id}")
+                                success, message = delete_employee(row['id'], user_id)
                                 
-                            if confirm:
-                                print(f"DEBUG UI: Starting employee deletion process")
-                                success_count = 0
-                                error_count = 0
-                                
-                                for _, row in selected_employees.iterrows():
-                                    print(f"DEBUG UI: Attempting to delete employee with ID {row['id']} for user {user_id}")
-                                    success, message = delete_employee(row['id'], user_id)
-                                    print(f"DEBUG UI: Delete result: success={success}, message={message}")
-                                    if success:
-                                        success_count += 1
-                                    else:
-                                        error_count += 1
-                                        confirmation_container.error(f"Failed to delete {row['full_name']}: {message}")
-                                        print(f"DEBUG UI: Error: {message}")
-                                
-                                if success_count > 0:
-                                    confirmation_container.success(f"Successfully deleted {success_count} employee(s)")
-                                    # Wait for 2 seconds to show the success message
-                                    time.sleep(2)
-                                    st.rerun()
-                                    
-                                if error_count > 0:
-                                    confirmation_container.error(f"Failed to delete {error_count} employee(s)")
-                    st.markdown('</div>', unsafe_allow_html=True)
+                                if success:
+                                    success_count += 1
+                                else:
+                                    error_count += 1
+                                    error_messages.append(f"Failed to delete {row['full_name']}: {message}")
+                        
+                        # Reset confirmation mode
+                        st.session_state.confirm_delete_mode = False
+                        
+                        # Show results
+                        if success_count > 0:
+                            st.session_state.delete_success_message = f"Successfully deleted {success_count} employee(s)"
+                        
+                        if error_count > 0:
+                            st.session_state.delete_error_messages = error_messages
+                        
+                        # Rerun to refresh the page
+                        st.rerun()
+            
+            # Display success message from previous operation if exists
+            if "delete_success_message" in st.session_state:
+                st.success(st.session_state.delete_success_message)
+                # Remove the message after displaying once
+                del st.session_state.delete_success_message
+            
+            # Display error messages from previous operation if they exist
+            if "delete_error_messages" in st.session_state and st.session_state.delete_error_messages:
+                for error_msg in st.session_state.delete_error_messages:
+                    st.error(error_msg)
+                # Remove the messages after displaying once
+                del st.session_state.delete_error_messages
 
         else:
             st.info("No employees found in the system.")
