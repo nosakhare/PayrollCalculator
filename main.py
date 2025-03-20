@@ -26,18 +26,33 @@ st.set_page_config(
 with open("style.css") as f:
     st.markdown(f"""<style>{f.read()}</style>""", unsafe_allow_html=True)
 
-# Hide Streamlit's default menu, footer, and top navigation tabs
+# Hide Streamlit's default menu, footer, and top-level tabs
 st.markdown("""
     <style>
-        /* Hide the top navigation tabs completely */
-        div[data-testid="stVerticalBlock"] > div:has(div[role="tablist"]) {
-            display: none;
-        }
-        
-        /* Keep existing styles */
         #MainMenu {visibility: hidden;}
         footer {visibility: hidden;}
         .stDeployButton {display:none;}
+        /* Hide the top app tabs (from pages directory) */
+        header {visibility: hidden !important;}
+        /* Hide the default tabs at the top (but NOT login tabs) */
+        [data-testid="stAppViewBlockContainer"] > div:first-child {display: none !important;}
+        section.main > div:first-child {display: none !important;}
+        /* Add top padding to compensate for hidden header */
+        .main .block-container {padding-top: 2rem !important;}
+        /* Only hide tabs at specific locations, not login tabs */
+        div.element-container:first-of-type > div > div > div[data-testid="stVerticalBlock"] > div:has(div[role="tablist"]) {
+            display: none;
+        }
+        /* Make login container visible */
+        .login-container {
+            display: block !important;
+            visibility: visible !important;
+        }
+        /* Make tabs inside login container visible */
+        .login-container div[role="tablist"] {
+            display: flex !important;
+            visibility: visible !important;
+        }
     </style>
 """, unsafe_allow_html=True)
 
