@@ -910,6 +910,9 @@ def payroll_processing_page():
             st.warning("No payroll data available. Please calculate payroll first.")
 
 def employee_management_page():
+    # Get user ID from session state
+    user_id = st.session_state.user_id
+    
     st.title("Employee Management")
 
     # Create tabs for different operations
@@ -1055,7 +1058,7 @@ def employee_management_page():
                     # Show confirmation button only if validation passes
                     if st.button("Confirm Upload"):
                         with st.spinner("Processing employee data..."):
-                            results = process_bulk_upload(df)
+                            results = process_bulk_upload(df, user_id)
 
                             if results['success']:
                                 st.success(results['message'])
