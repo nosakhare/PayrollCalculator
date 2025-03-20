@@ -443,6 +443,52 @@ h1, h2, h3, h4, h5, h6 {
     background-color: var(--primary-light);
 }
 
+/* Style the radio buttons for navigation to look like our nav menu */
+[data-testid="stRadio"] > div {
+    margin-top: -20px; /* Move up to align with headers */
+}
+
+[data-testid="stRadio"] label {
+    cursor: pointer;
+    padding: 0.5rem;
+    margin: 0.25rem 0;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+}
+
+[data-testid="stRadio"] label:hover {
+    background-color: var(--primary-light);
+}
+
+/* Hide the actual radio input */
+[data-testid="stRadio"] input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+}
+
+/* Style the selected radio label */
+[data-testid="stRadio"] input:checked + div {
+    background-color: var(--primary-light);
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+/* Make SVGs in radio labels larger */
+[data-testid="stRadio"] svg {
+    width: 20px;
+    height: 20px;
+    margin-right: 0.5rem;
+}
+
+/* Hide standard radio styling */
+[data-testid="stRadio"] > div:first-child {
+    display: none;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .card-grid {

@@ -62,37 +62,24 @@ pages = {
     "Payroll Processing": {"icon": "payroll", "section": "PAYROLL"}
 }
 
-# Create sidebar navigation
-for page_name, page_info in pages.items():
-    if page_info["section"] == "MAIN":
-        active_class = "active" if st.session_state.page == page_name else ""
-        if st.sidebar.markdown(f"""
-            <div class="sidebar-nav-item {active_class}" onclick="window.location.href='#{page_name.replace(' ', '_')}'">{get_icon_html(page_info["icon"])} {page_name}</div>
-            """, unsafe_allow_html=True):
-            st.session_state.page = page_name
-            
-# Create payroll section
-st.sidebar.markdown('<div class="sidebar-section-header">PAYROLL</div>', unsafe_allow_html=True)
+# Navigation section headers
+st.sidebar.markdown('<div class="sidebar-section-header">MAIN</div>', unsafe_allow_html=True)
+st.sidebar.markdown('<div class="sidebar-section-header" style="margin-top: 20px;">PAYROLL</div>', unsafe_allow_html=True)
 
-# Payroll navigation items
-for page_name, page_info in pages.items():
-    if page_info["section"] == "PAYROLL":
-        active_class = "active" if st.session_state.page == page_name else ""
-        if st.sidebar.markdown(f"""
-            <div class="sidebar-nav-item {active_class}" onclick="window.location.href='#{page_name.replace(' ', '_')}'">{get_icon_html(page_info["icon"])} {page_name}</div>
-            """, unsafe_allow_html=True):
-            st.session_state.page = page_name
+# Create styled navigation with a native Streamlit radio component
+page_icons = {page_name: get_icon_html(page_info["icon"]) for page_name, page_info in pages.items()}
 
-# Legacy selectbox for compatibility, hidden with CSS
-page = st.sidebar.selectbox("Select a page", list(pages.keys()), index=list(pages.keys()).index(st.session_state.page), key="page_selector")
-st.session_state.page = page
-
-# Apply custom CSS to hide the selectbox
-st.markdown("""
-    <style>
-        div[data-testid="stSelectbox"] {display: none;}
-    </style>
-""", unsafe_allow_html=True)
+# Use radio buttons which are easier to style
+selected = st.sidebar.radio(
+    "Navigation",
+    options=list(pages.keys()),
+    format_func=lambda x: f"{page_icons.get(x, '')} {x}",
+    label_visibility="collapsed",
+    index=list(pages.keys()).index(st.session_state.page),
+    key="nav_radio"
+)
+# Update session state
+st.session_state.page = selected
 
 def salary_calculator_page():
     # Initialize session state
