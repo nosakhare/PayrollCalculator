@@ -453,7 +453,7 @@ elif page == "Payroll Processing":
             # Add payroll period selection
             col1, col2 = st.columns([2, 1])
             with col1:
-                period_name = st.text_input("Payroll Period", value=st.session_state.period_name, key="payroll_period_input_main")
+                period_name = st.text_input("Payroll Period", value=st.session_state.period_name, key="payroll_period_input")
 
             with col2:
                 st.metric("Total Payroll", f"₦{st.session_state.total_payroll:,.2f}")
@@ -992,7 +992,7 @@ def main():
     if page == "Salary Calculator":
         salary_calculator_page()
     elif page == "Employee Management":
-        employee_management_page()
+        render_employee_management()
     else:
         payroll_processing_page()
 
