@@ -543,11 +543,7 @@ def salary_calculator_page():
         Note: Contract employees don't have pension deductions.
         """)
 
-def debug_page():
-    """Display debugging information for session state and database"""
-    from debug_session import init_debug
-    init_debug()
-    
+
 def payroll_processing_page():
     # Get user ID from session state
     user_id = st.session_state.user_id
@@ -1110,8 +1106,7 @@ def main():
         "Salary Calculator": "Calculate accurate salaries with tax and pension deductions",
         "Employee Management": "Manage employee records and bulk upload data",
         "Payroll Processing": "Process monthly payroll and generate payslips",
-        "My Profile": "Manage your account information",
-        "Debug": "View session state and database information"
+        "My Profile": "Manage your account information"
     }
     
     # Display appropriate page title and description
@@ -1133,8 +1128,7 @@ def main():
         payroll_processing_page()
     elif st.session_state.page == "My Profile":
         profile_page()
-    elif st.session_state.page == "Debug":
-        debug_page()
+
 
 if __name__ == "__main__":
     main()
