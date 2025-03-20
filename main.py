@@ -10,6 +10,7 @@ from payslip_generator import PayslipGenerator
 import os
 from pages.employee_management import render_page as render_employee_management
 from pages.employee_details import render_page as render_employee_details
+from pages.admin_tools import render_page as render_admin_tools
 from sidebar_icons import get_icon_html
 from notifications import success_message, error_message, warning_message, info_message, loading_spinner, progress_bar, step_indicator, workflow_buttons
 from auth import login_page, profile_page, check_authentication, inject_custom_css
@@ -73,6 +74,7 @@ pages = {
     "Employee Management": {"icon": "employee", "section": "MAIN"},
     "Salary Calculator": {"icon": "calculator", "section": "MAIN"},
     "Payroll Processing": {"icon": "payroll", "section": "PAYROLL"},
+    "Admin Tools": {"icon": "employee", "section": "PAYROLL"},
     "My Profile": {"icon": "profile", "section": "USER"}
 }
 
