@@ -390,8 +390,8 @@ def delete_employee(employee_id, user_id):
         if not employee:
             return False, "Employee not found or you don't have permission to delete this employee"
 
-        # Delete the employee
-        c.execute('DELETE FROM employees WHERE id = ?', (employee_id,))
+        # Delete the employee (ensure to check user_id to maintain data isolation)
+        c.execute('DELETE FROM employees WHERE id = ? AND user_id = ?', (employee_id, user_id))
         conn.commit()
         return True, "Employee deleted successfully"
     except Exception as e:
